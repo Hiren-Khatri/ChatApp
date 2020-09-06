@@ -30,10 +30,10 @@ import com.google.firebase.database.ValueEventListener;
 import java.util.ArrayList;
 import java.util.List;
 
-import app.khatrisoftwares.chatapp.AddPostActivity;
-import app.khatrisoftwares.chatapp.MainActivity;
+import app.khatrisoftwares.chatapp.activities.AddPostActivity;
+import app.khatrisoftwares.chatapp.activities.MainActivity;
 import app.khatrisoftwares.chatapp.R;
-import app.khatrisoftwares.chatapp.SettingsActivity;
+import app.khatrisoftwares.chatapp.activities.SettingsActivity;
 import app.khatrisoftwares.chatapp.adapters.AdapterPosts;
 import app.khatrisoftwares.chatapp.models.ModelPost;
 
@@ -86,7 +86,7 @@ public class HomeFragment extends Fragment {
 
                     postList.add(modelPost);
 
-                    adapterPosts = new AdapterPosts(getActivity(),postList);
+                    adapterPosts = new AdapterPosts(getActivity(),postList,false);
                     postsRv.setAdapter(adapterPosts);
                 }
             }
@@ -113,7 +113,7 @@ public class HomeFragment extends Fragment {
                         postList.add(modelPost);
                     }
 
-                    adapterPosts = new AdapterPosts(getActivity(),postList);
+                    adapterPosts = new AdapterPosts(getActivity(),postList,false);
                     postsRv.setAdapter(adapterPosts);
                 }
             }

@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:padding="20dp"
-    tools:context=".LoginActivity">
+    tools:context=".activities.LoginActivity">
 
     <TextView
         android:layout_width="match_parent"
@@ -15,6 +15,7 @@
         android:textAlignment="center"
         android:textColor="@color/colorPrimary"
         android:textSize="25sp"
+        android:fontFamily="@font/ubuntu_bold"
         android:textStyle="bold" />
 
 
@@ -30,6 +31,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:hint="Email"
+            android:fontFamily="@font/ubuntu_medium"
             android:inputType="textEmailAddress" />
     </com.google.android.material.textfield.TextInputLayout>
 
@@ -47,6 +49,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:hint="Password"
+            android:fontFamily="@font/ubuntu_medium"
             android:inputType="textPassword" />
     </com.google.android.material.textfield.TextInputLayout>
 
@@ -59,6 +62,7 @@
         android:layout_centerHorizontal="true"
         android:drawableStart="@drawable/ic_login_white"
         android:drawablePadding="5dp"
+        android:fontFamily="@font/ubuntu_bold"
         android:text="Login" />
 
     <TextView
@@ -67,6 +71,7 @@
         android:layout_height="wrap_content"
         android:layout_below="@id/loginBtn"
         android:text="Forgot Password? Recover"
+        android:fontFamily="@font/ubuntu_medium"
         android:textAlignment="center"
         android:textColor="@color/colorPrimary" />
 
@@ -76,8 +81,7 @@
         android:layout_height="wrap_content"
         android:layout_below="@id/recoverPassTv"
         android:layout_centerHorizontal="true"
-        android:layout_marginTop="5dp"
-        app:buttonSize="wide"/>
+        android:layout_marginTop="5dp"/>
 
     <TextView
         android:id="@+id/not_have_accountTv"
@@ -87,6 +91,7 @@
         android:layout_marginBottom="20dp"
         android:layout_marginTop="30dp"
         android:text="Not having account? Register"
+        android:fontFamily="@font/ubuntu_medium"
         android:textAlignment="center"
         android:textColor="@color/colorPrimary" />
 

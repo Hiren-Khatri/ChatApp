@@ -1,4 +1,4 @@
-package app.khatrisoftwares.chatapp;
+package app.khatrisoftwares.chatapp.activities;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -39,6 +39,8 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
 import java.util.HashMap;
+
+import app.khatrisoftwares.chatapp.R;
 
 public class LoginActivity extends AppCompatActivity {
     private static final int RC_SIGN_IN = 100;
@@ -249,11 +251,11 @@ public class LoginActivity extends AppCompatActivity {
                                 HashMap<Object,String> hashMap = new HashMap<>();
                                 hashMap.put("email",email);
                                 hashMap.put("uid",uid);
-                                hashMap.put("name","");
+                                hashMap.put("name",""+user.getDisplayName());
                                 hashMap.put("onlineStatus","online");
                                 hashMap.put("typingTo","noOne");
                                 hashMap.put("phone","");
-                                hashMap.put("image","");
+                                hashMap.put("image",""+user.getPhotoUrl());
                                 hashMap.put("cover","");
                                 //storing data to db
                                 DatabaseReference ref = FirebaseDatabase.getInstance().getReference("Users");

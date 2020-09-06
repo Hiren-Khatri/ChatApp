@@ -27,9 +27,9 @@ import com.squareup.picasso.Picasso;
 import java.util.HashMap;
 import java.util.List;
 
-import app.khatrisoftwares.chatapp.ChatActivity;
+import app.khatrisoftwares.chatapp.activities.ChatActivity;
 import app.khatrisoftwares.chatapp.R;
-import app.khatrisoftwares.chatapp.ThereProfileActivity;
+import app.khatrisoftwares.chatapp.activities.ThereProfileActivity;
 import app.khatrisoftwares.chatapp.models.ModelUser;
 
 public class AdapterUsers extends RecyclerView.Adapter<AdapterUsers.HolderUsers> {

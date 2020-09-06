@@ -29,6 +29,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Person Name"
+                android:fontFamily="@font/ubuntu_medium"
                 android:textSize="18sp"
                 android:textColor="@color/colorBlack"/>
             <TextView
@@ -36,6 +37,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Person Email"
+                android:fontFamily="@font/ubuntu_regular"
                 android:textSize="18sp"
                 android:textColor="@color/colorBlack"/>
         </LinearLayout>

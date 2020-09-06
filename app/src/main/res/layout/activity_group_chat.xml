@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="#f1EDED"
-    tools:context=".GroupChatActivity">
+    tools:context=".activities.GroupChatActivity">
 
     <androidx.appcompat.widget.Toolbar
         android:id="@+id/toolbar"
@@ -18,25 +18,46 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content">
 
+            <ImageButton
+                android:id="@+id/backBtn"
+                android:layout_width="@dimen/_25sdp"
+                android:layout_height="@dimen/_35sdp"
+                android:src="@drawable/ic_back"
+                android:background="@null"
+                android:contentDescription="@string/app_name"/>
+
             <com.blogspot.atifsoftwares.circularimageview.CircularImageView
                 android:id="@+id/groupIconIv"
                 android:layout_width="35dp"
                 android:layout_height="35dp"
-                android:layout_centerVertical="true"
                 android:scaleType="centerCrop"
+                android:layout_toEndOf="@id/backBtn"
                 android:src="@drawable/ic_group_primary" />
 
             <TextView
                 android:id="@+id/groupTitleTv"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_centerVertical="true"
                 android:layout_marginStart="10dp"
-                android:layout_toEndOf="@id/groupIconIv"
+                android:fontFamily="@font/ubuntu_bold"
                 android:text="Group Title"
+                android:layout_toEndOf="@id/groupIconIv"
+                android:layout_gravity="center_vertical"
                 android:textColor="@color/colorWhite"
-                android:textSize="18sp"
-                android:textStyle="bold" />
+                android:layout_toStartOf="@id/imageMeeting"
+                android:textSize="18sp" />
+
+            <ImageView
+                android:id="@+id/imageMeeting"
+                android:layout_width="@dimen/_30sdp"
+                android:layout_height="@dimen/_30sdp"
+                android:padding="@dimen/_2sdp"
+                android:layout_marginEnd="@dimen/_8sdp"
+                android:layout_marginStart="@dimen/_8sdp"
+                android:contentDescription="@string/app_name"
+                android:src="@drawable/ic_audio"
+                android:layout_alignParentEnd="true"
+                app:tint="@color/colorWhite" />
 
         </RelativeLayout>
 
@@ -46,11 +67,11 @@
         android:id="@+id/chatRv"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        app:stackFromEnd="true"
-        android:layout_below="@id/toolbar"
         android:layout_above="@id/chatLl"
+        android:layout_below="@id/toolbar"
         app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
-        tools:listitem="@layout/row_groupchat_left"/>
+        app:stackFromEnd="true"
+        tools:listitem="@layout/row_groupchat_left" />
 
     <LinearLayout
         android:id="@+id/chatLl"
@@ -74,9 +95,10 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:background="@null"
+            android:fontFamily="@font/ubuntu_regular"
             android:hint="Start typing..."
-            android:padding="10dp"
-            android:inputType="textCapSentences|textMultiLine" />
+            android:inputType="textCapSentences|textMultiLine"
+            android:padding="10dp" />
 
         <ImageButton
             android:id="@+id/sendBtn"

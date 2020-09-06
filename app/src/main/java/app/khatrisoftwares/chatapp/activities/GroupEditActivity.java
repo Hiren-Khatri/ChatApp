@@ -1,4 +1,4 @@
-package app.khatrisoftwares.chatapp;
+package app.khatrisoftwares.chatapp.activities;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -28,21 +28,30 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.snackbar.Snackbar;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
+import com.squareup.picasso.Picasso;
 
 import java.util.HashMap;
 
-public class GroupCreateActivity extends AppCompatActivity {
+import app.khatrisoftwares.chatapp.R;
+
+public class GroupEditActivity extends AppCompatActivity {
 
     private ActionBar actionBar;
+
+    private String groupId;
+
     private FirebaseAuth firebaseAuth;
     private ImageView groupIconIv;
     private EditText groupTitleEt, groupDescriptionEt;
-    private FloatingActionButton createGroupBtn;
+    private FloatingActionButton updateGroupBtn;
 
     private static final int CAMERA_REQUEST_CODE = 100;
     private static final int STORAGE_REQUEST_CODE = 200;
@@ -55,20 +64,23 @@ public class GroupCreateActivity extends AppCompatActivity {
 
     //    uri of picked image
     private Uri image_uri;
-
     private ProgressDialog progressDialog;
 
     @Override
-
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_group_create);
+        setContentView(R.layout.activity_group_edit);
 
         actionBar = getSupportActionBar();
-        assert actionBar != null;
-        actionBar.setTitle("Create Group");
+        actionBar.setTitle("Edit Group");
         actionBar.setDisplayHomeAsUpEnabled(true);
         actionBar.setDisplayShowHomeEnabled(true);
+
+        groupId = getIntent().getStringExtra("groupId");
+
+        progressDialog = new ProgressDialog(this);
+        progressDialog.setTitle("Please wait");
+        progressDialog.setCanceledOnTouchOutside(false);
 
         //int request permission arrays
         cameraPermissions = new String[]{Manifest.permission.CAMERA, Manifest.permission.WRITE_EXTERNAL_STORAGE};
@@ -77,10 +89,11 @@ public class GroupCreateActivity extends AppCompatActivity {
         groupIconIv = findViewById(R.id.groupIconIv);
         groupTitleEt = findViewById(R.id.groupTitleEt);
         groupDescriptionEt = findViewById(R.id.groupDescriptionEt);
-        createGroupBtn = findViewById(R.id.createGroupBtn);
+        updateGroupBtn = findViewById(R.id.updateGroupBtn);
 
         firebaseAuth = FirebaseAuth.getInstance();
         checkUser();
+        loadGroupInfo();
 
         groupIconIv.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -89,119 +102,125 @@ public class GroupCreateActivity extends AppCompatActivity {
             }
         });
 
-        createGroupBtn.setOnClickListener(new View.OnClickListener() {
+        updateGroupBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                startCreatingGroup();
+                startUpdatingGroup();
             }
         });
-
     }
 
-    private void startCreatingGroup() {
-        progressDialog = new ProgressDialog(this);
-        progressDialog.setTitle("Creating Group");
-
-        //input title,description
+    private void startUpdatingGroup() {
+        //input data
         final String groupTitle = groupTitleEt.getText().toString().trim();
-        final String groupDescription = groupDescriptionEt.getText().toString().trim();
+        final String groupDesc = groupDescriptionEt.getText().toString().trim();
 
-        if (TextUtils.isEmpty(groupTitle)) {
+        //validate data
+        if (TextUtils.isEmpty(groupTitle)){
             groupTitleEt.setError("required");
             return;
         }
 
-        final String g_timestamp = "" + System.currentTimeMillis();
-
+        progressDialog.setMessage("Updating Group Info...");
         progressDialog.show();
 
-        if (image_uri == null) {
-            //creating group without image
-            createGroup(
-                    "" + g_timestamp,
-                    "" + groupTitle,
-                    "" + groupDescription,
-                    ""
-            );
-        } else {
-            //creating group with icon
-            String fileNameAndPath = "Group_Imgs/" + "image" + g_timestamp;
-            StorageReference storageReference = FirebaseStorage.getInstance().getReference(fileNameAndPath);
-            storageReference.putFile(image_uri)
-                    .addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
-                        @Override
-                        public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
-                            Task<Uri> p_uriTask = taskSnapshot.getStorage().getDownloadUrl();
-                            while (!p_uriTask.isSuccessful()) ;
+        if (image_uri == null){
+            //update group without icon
+            HashMap<String, Object> hashMap = new HashMap<>();
+            hashMap.put("groupTitle", groupTitle);
+            hashMap.put("groupDescription", groupDesc);
 
-                            Uri p_downloadUri = p_uriTask.getResult();
-                            if (p_uriTask.isSuccessful()) {
-                                createGroup(
-                                        "" + g_timestamp,
-                                        "" + groupTitle,
-                                        "" + groupDescription,
-                                        "" + p_downloadUri
-                                );
-                            }
+            DatabaseReference ref = FirebaseDatabase.getInstance().getReference("Groups");
+            ref.child(groupId).updateChildren(hashMap)
+                    .addOnSuccessListener(new OnSuccessListener<Void>() {
+                        @Override
+                        public void onSuccess(Void aVoid) {
+                            progressDialog.dismiss();
+                            Snackbar.make(findViewById(android.R.id.content),"Group Info Updated...",Snackbar.LENGTH_SHORT).setBackgroundTint(getColor(R.color.colorPrimaryDark)).show();
                         }
                     })
                     .addOnFailureListener(new OnFailureListener() {
                         @Override
                         public void onFailure(@NonNull Exception e) {
                             progressDialog.dismiss();
-                            Snackbar.make(findViewById(android.R.id.content), "" + e.getMessage(), Snackbar.LENGTH_SHORT).setBackgroundTint(getColor(R.color.colorPrimaryDark)).show();
+                            Snackbar.make(findViewById(android.R.id.content),""+e.getMessage(),Snackbar.LENGTH_SHORT).setBackgroundTint(getColor(R.color.colorPrimaryDark)).show();
                         }
                     });
+        } else {
+            //update group with icon
+            String timestamp = String.valueOf(System.currentTimeMillis());
+            String filePathAndName = "Group_Imgs/"+"image"+"timestamp";
+
+            StorageReference storageReference = FirebaseStorage.getInstance().getReference(filePathAndName);
+            storageReference.putFile(image_uri)
+                    .addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
+                        @Override
+                        public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+                            //image uploaded
+                            //get url
+                            Task<Uri> uriTask = taskSnapshot.getStorage().getDownloadUrl();
+                            while (!uriTask.isSuccessful());
+                            Uri downloadUri = uriTask.getResult();
+                            if (uriTask.isSuccessful()){
+                                HashMap<String, Object> hashMap = new HashMap<>();
+                                hashMap.put("groupTitle", groupTitle);
+                                hashMap.put("groupDescription", groupDesc);
+                                hashMap.put("groupIcon", downloadUri.toString());
+
+                                DatabaseReference ref = FirebaseDatabase.getInstance().getReference("Groups");
+                                ref.child(groupId).updateChildren(hashMap)
+                                        .addOnSuccessListener(new OnSuccessListener<Void>() {
+                                            @Override
+                                            public void onSuccess(Void aVoid) {
+                                                progressDialog.dismiss();
+                                                Snackbar.make(findViewById(android.R.id.content),"Group Info Updated...",Snackbar.LENGTH_SHORT).setBackgroundTint(getColor(R.color.colorPrimaryDark)).show();
+                                            }
+                                        })
+                                        .addOnFailureListener(new OnFailureListener() {
+                                            @Override
+                                            public void onFailure(@NonNull Exception e) {
+                                                progressDialog.dismiss();
+                                                Snackbar.make(findViewById(android.R.id.content),""+e.getMessage(),Snackbar.LENGTH_SHORT).setBackgroundTint(getColor(R.color.colorPrimaryDark)).show();
+                                            }
+                                        });
+                            }
+                        }
+                    }).addOnFailureListener(new OnFailureListener() {
+                @Override
+                public void onFailure(@NonNull Exception e) {
+                    progressDialog.dismiss();
+                    Snackbar.make(findViewById(android.R.id.content),""+e.getMessage(),Snackbar.LENGTH_SHORT).setBackgroundTint(getColor(R.color.colorPrimaryDark)).show();
+                }
+            });
         }
     }
 
-    private void createGroup(final String g_timestamp, String gTitle, String gDesc, String icon) {
-        final HashMap<String, String> hashMap = new HashMap<>();
-        hashMap.put("groupId", g_timestamp);
-        hashMap.put("groupTitle", gTitle);
-        hashMap.put("groupDescription", gDesc);
-        hashMap.put("groupIcon", "" + icon);
-        hashMap.put("timestamp", "" + g_timestamp);
-        hashMap.put("createdBy", "" + firebaseAuth.getUid());
-
-        //creating group
+    private void loadGroupInfo() {
         DatabaseReference ref = FirebaseDatabase.getInstance().getReference("Groups");
-        ref.child(g_timestamp).setValue(hashMap)
-                .addOnSuccessListener(new OnSuccessListener<Void>() {
+        ref.orderByChild("groupId").equalTo(groupId)
+                .addValueEventListener(new ValueEventListener() {
                     @Override
-                    public void onSuccess(Void aVoid) {
-                        //group created
-                        //setup member info (add current user in group's participants list
-                        HashMap<String,String> hashMap1 = new HashMap<>();
-                        hashMap1.put("uid",firebaseAuth.getUid());
-                        hashMap1.put("role","creator");
-                        hashMap1.put("timestamp",g_timestamp);
-
-                        DatabaseReference ref1 = FirebaseDatabase.getInstance().getReference("Groups");
-                        ref1.child(g_timestamp).child("Participants").child(firebaseAuth.getUid())
-                                .setValue(hashMap1)
-                                .addOnSuccessListener(new OnSuccessListener<Void>() {
-                                    @Override
-                                    public void onSuccess(Void aVoid) {
-                                        //participant added
-                                        progressDialog.dismiss();
-                                        Snackbar.make(findViewById(android.R.id.content), "Group Created...", Snackbar.LENGTH_SHORT).setBackgroundTint(getColor(R.color.colorPrimaryDark)).show();
-                                    }
-                                })
-                                .addOnFailureListener(new OnFailureListener() {
-                                    @Override
-                                    public void onFailure(@NonNull Exception e) {
-                                        progressDialog.dismiss();
-                                        Snackbar.make(findViewById(android.R.id.content), "" + e.getMessage(), Snackbar.LENGTH_SHORT).setBackgroundTint(getColor(R.color.colorPrimaryDark)).show();
-                                    }
-                                });
+                    public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                        for (DataSnapshot ds: dataSnapshot.getChildren()){
+                            String groupTitle = ""+ds.child("groupTitle").getValue();
+                            String groupDescription = ""+ds.child("groupDescription").getValue();
+                            String groupIcon = ""+ds.child("groupIcon").getValue();
+                            String timestamp = ""+ds.child("timestamp").getValue();
+                            String createdBy = ""+ds.child("createdBy").getValue();
+                            
+                            groupTitleEt.setText(groupTitle);
+                            groupDescriptionEt.setText(groupDescription);
+                            try {
+                                Picasso.get().load(groupIcon).placeholder(R.drawable.ic_group_primary).into(groupIconIv);
+                            } catch (Exception e){
+                                groupIconIv.setImageResource(R.drawable.ic_group_primary);
+                            }
+                        }
                     }
-                })
-                .addOnFailureListener(new OnFailureListener() {
+
                     @Override
-                    public void onFailure(@NonNull Exception e) {
-                        progressDialog.dismiss();
-                        Snackbar.make(findViewById(android.R.id.content), "" + e.getMessage(), Snackbar.LENGTH_SHORT).setBackgroundTint(getColor(R.color.colorPrimaryDark)).show();
+                    public void onCancelled(@NonNull DatabaseError databaseError) {
+
                     }
                 });
     }
@@ -351,5 +370,4 @@ public class GroupCreateActivity extends AppCompatActivity {
 
         super.onActivityResult(requestCode, resultCode, data);
     }
-
 }

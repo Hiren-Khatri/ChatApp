@@ -18,6 +18,7 @@ import android.os.Bundle;
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 import androidx.core.app.NotificationCompat;
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -28,9 +29,11 @@ import com.google.firebase.messaging.RemoteMessage;
 
 import java.util.Random;
 
-import app.khatrisoftwares.chatapp.ChatActivity;
-import app.khatrisoftwares.chatapp.PostDetailActivity;
+import app.khatrisoftwares.chatapp.activities.ChatActivity;
+import app.khatrisoftwares.chatapp.activities.IncomingInvitationActivity;
+import app.khatrisoftwares.chatapp.activities.PostDetailActivity;
 import app.khatrisoftwares.chatapp.R;
+import app.khatrisoftwares.chatapp.utilities.Constants;
 
 public class FirebaseMessaging extends FirebaseMessagingService {
 
@@ -41,65 +44,100 @@ public class FirebaseMessaging extends FirebaseMessagingService {
         super.onMessageReceived(remoteMessage);
 
         //get current user from shared preferences
-        SharedPreferences sp = getSharedPreferences("SP_USER",MODE_PRIVATE);
-        String savedCurrentUser = sp.getString("Current_USERID","None");
+        SharedPreferences sp = getSharedPreferences("SP_USER", MODE_PRIVATE);
+        String savedCurrentUser = sp.getString("Current_USERID", "None");
 
         /* There are two types of notifications
-                * notificationType="ChatNotification"
-                * notificationType="PostNotification" */
+         * notificationType="ChatNotification"
+         * notificationType="PostNotification" */
 
         String notificationType = remoteMessage.getData().get("notificationType");
-        if (notificationType.equals("PostNotification")){
+        if (notificationType.equals("PostNotification")) {
             //post notification
             String sender = remoteMessage.getData().get("sender");
             String pId = remoteMessage.getData().get("pId");
             String pTitle = remoteMessage.getData().get("pTitle");
             String pDescription = remoteMessage.getData().get("pDescription");
-        //if user is same that has posted don't show hin notification
-            if (!sender.equals(savedCurrentUser)){
-                showPostNotification(""+pId,""+pTitle,""+pDescription);
+            //if user is same that has posted don't show hin notification
+            if (!sender.equals(savedCurrentUser)) {
+                showPostNotification("" + pId, "" + pTitle, "" + pDescription);
             }
 
-        } else if (notificationType.equals("ChatNotification")){
+        } else if (notificationType.equals("ChatNotification")) {
             //chat notification
             String sent = remoteMessage.getData().get("sent");
             String user = remoteMessage.getData().get("user");
             FirebaseUser fUser = FirebaseAuth.getInstance().getCurrentUser();
-            if (fUser!=null && sent.equals(fUser.getUid())){
-                if (!savedCurrentUser.equals(user)){
-                    if (Build.VERSION.SDK_INT>=Build.VERSION_CODES.O){
+            if (fUser != null && sent.equals(fUser.getUid())) {
+                if (!savedCurrentUser.equals(user)) {
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                         sendOAndAboveNotification(remoteMessage);
-                    }else {
+                    } else {
                         sendNormalNotification(remoteMessage);
                     }
                 }
             }
+        } else if (notificationType.equals(Constants.REMOTE_MSG_INVITATION)) {
+            Intent intent = new Intent(getApplicationContext(), IncomingInvitationActivity.class);
+            intent.putExtra(
+                    Constants.REMOTE_MSG_MEETING_TYPE,
+                    remoteMessage.getData().get(Constants.REMOTE_MSG_MEETING_TYPE)
+            );
+            intent.putExtra(
+                    Constants.KEY_FIRST_NAME,
+                    remoteMessage.getData().get(Constants.KEY_FIRST_NAME)
+            );
+            intent.putExtra(
+                    Constants.KEY_LAST_NAME,
+                    remoteMessage.getData().get(Constants.KEY_LAST_NAME)
+            );
+            intent.putExtra(
+                    Constants.KEY_EMAIL,
+                    remoteMessage.getData().get(Constants.KEY_EMAIL)
+            );
+            intent.putExtra(
+                    Constants.REMOTE_MSG_INVITER_TOKEN,
+                    remoteMessage.getData().get(Constants.REMOTE_MSG_INVITER_TOKEN)
+            );
+            intent.putExtra(
+                    Constants.REMOTE_MSG_MEETING_ROOM,
+                    remoteMessage.getData().get(Constants.REMOTE_MSG_MEETING_ROOM)
+            );
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            startActivity(intent);
+        } else if (notificationType.equals(Constants.REMOTE_MSG_INVITATION_RESPONSE)) {
+            Intent intent = new Intent(Constants.REMOTE_MSG_INVITATION_RESPONSE);
+            intent.putExtra(
+                    Constants.REMOTE_MSG_INVITATION_RESPONSE,
+                    remoteMessage.getData().get(Constants.REMOTE_MSG_INVITATION_RESPONSE)
+            );
+            LocalBroadcastManager.getInstance(getApplicationContext()).sendBroadcast(intent);
         }
     }
 
     private void showPostNotification(String pId, String pTitle, String pDescription) {
-        NotificationManager manager = (NotificationManager)getSystemService(Context.NOTIFICATION_SERVICE);
+        NotificationManager manager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
 
         int notificationID = new Random().nextInt(3000);
 
         //setup notification channel for oreo and above
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O){
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             setupPostNotificationChannel(manager);
         }
 
         //show post details activity using post id when notification clicked
         Intent intent = new Intent(this, PostDetailActivity.class);
-        intent.putExtra("postId",pId);
+        intent.putExtra("postId", pId);
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
 
-        PendingIntent pendingIntent = PendingIntent.getActivity(this,0,intent,PendingIntent.FLAG_ONE_SHOT);
+        PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_ONE_SHOT);
 
         //LargeIcon
         Bitmap largeIcon = BitmapFactory.decodeResource(getResources(), R.drawable.logo);
 
         //notification sound
         Uri notificationUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
-        NotificationCompat.Builder  notificationBuilder = new NotificationCompat.Builder(this,""+ADMIN_CHANNEL_ID)
+        NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(this, "" + ADMIN_CHANNEL_ID)
                 .setSmallIcon(R.drawable.logo)
                 .setLargeIcon(largeIcon)
                 .setContentTitle(pTitle)
@@ -108,7 +146,7 @@ public class FirebaseMessaging extends FirebaseMessagingService {
                 .setContentIntent(pendingIntent);
 
         //show notification
-        manager.notify(notificationID,notificationBuilder.build());
+        manager.notify(notificationID, notificationBuilder.build());
     }
 
     @RequiresApi(api = Build.VERSION_CODES.O)
@@ -117,12 +155,12 @@ public class FirebaseMessaging extends FirebaseMessagingService {
         String channelDescrption = "Device to device post notification";
 
 
-        NotificationChannel adminChannel = new NotificationChannel(ADMIN_CHANNEL_ID,channelName,NotificationManager.IMPORTANCE_HIGH);
+        NotificationChannel adminChannel = new NotificationChannel(ADMIN_CHANNEL_ID, channelName, NotificationManager.IMPORTANCE_HIGH);
         adminChannel.setDescription(channelDescrption);
         adminChannel.enableLights(true);
         adminChannel.setLightColor(Color.RED);
         adminChannel.enableVibration(true);
-        if (manager!=null){
+        if (manager != null) {
             manager.createNotificationChannel(adminChannel);
         }
 
@@ -135,13 +173,13 @@ public class FirebaseMessaging extends FirebaseMessagingService {
         String body = remoteMessage.getData().get("body");
 
         RemoteMessage.Notification notification = remoteMessage.getNotification();
-        int i = Integer.parseInt(user.replaceAll("[\\D]",""));
+        int i = Integer.parseInt(user.replaceAll("[\\D]", ""));
         Intent intent = new Intent(this, ChatActivity.class);
         Bundle bundle = new Bundle();
-        bundle.putString("hisUid",user);
+        bundle.putString("hisUid", user);
         intent.putExtras(bundle);
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-        PendingIntent pIntent = PendingIntent.getActivity(this,i,intent,PendingIntent.FLAG_ONE_SHOT);
+        PendingIntent pIntent = PendingIntent.getActivity(this, i, intent, PendingIntent.FLAG_ONE_SHOT);
 
         Uri defSoundUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
         NotificationCompat.Builder builder = new NotificationCompat.Builder(this)
@@ -151,12 +189,12 @@ public class FirebaseMessaging extends FirebaseMessagingService {
                 .setAutoCancel(true)
                 .setSound(defSoundUri)
                 .setContentIntent(pIntent);
-        NotificationManager notificationManager = (NotificationManager)getSystemService(Context.NOTIFICATION_SERVICE);
+        NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
         int j = 0;
-        if ( i>0){
-            j=i;
+        if (i > 0) {
+            j = i;
         }
-        notificationManager.notify(j,builder.build());
+        notificationManager.notify(j, builder.build());
     }
 
 
@@ -167,24 +205,24 @@ public class FirebaseMessaging extends FirebaseMessagingService {
         String body = remoteMessage.getData().get("body");
 
         RemoteMessage.Notification notification = remoteMessage.getNotification();
-        int i = Integer.parseInt(user.replaceAll("[\\D]",""));
+        int i = Integer.parseInt(user.replaceAll("[\\D]", ""));
         Intent intent = new Intent(this, ChatActivity.class);
         Bundle bundle = new Bundle();
-        bundle.putString("hisUid",user);
+        bundle.putString("hisUid", user);
         intent.putExtras(bundle);
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-        PendingIntent pIntent = PendingIntent.getActivity(this,i,intent,PendingIntent.FLAG_ONE_SHOT);
+        PendingIntent pIntent = PendingIntent.getActivity(this, i, intent, PendingIntent.FLAG_ONE_SHOT);
 
         Uri defSoundUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
 
         OreoAndAboveNotification notification1 = new OreoAndAboveNotification(this);
-        Notification.Builder builder = notification1.getONotifications(title,body,pIntent,defSoundUri,icon);
+        Notification.Builder builder = notification1.getONotifications(title, body, pIntent, defSoundUri, icon);
 
         int j = 0;
-        if ( i>0){
-            j=i;
+        if (i > 0) {
+            j = i;
         }
-        notification1.getManager().notify(j,builder.build());
+        notification1.getManager().notify(j, builder.build());
     }
 
     @Override
@@ -192,7 +230,7 @@ public class FirebaseMessaging extends FirebaseMessagingService {
         super.onNewToken(s);
         //update uer token
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
-        if (user!=null){
+        if (user != null) {
             //signed in, update token
             updateToken(s);
         }

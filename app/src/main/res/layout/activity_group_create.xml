@@ -6,7 +6,7 @@
     android:layout_height="match_parent"
     android:background="#eee"
     android:padding="20dp"
-    tools:context=".GroupCreateActivity">
+    tools:context=".activities.GroupCreateActivity">
 
     <com.blogspot.atifsoftwares.circularimageview.CircularImageView
         android:id="@+id/groupIconIv"
@@ -23,6 +23,7 @@
         android:layout_marginTop="10dp"
         android:background="@color/colorWhite"
         android:hint="Group Title"
+        android:fontFamily="@font/ubuntu_bold"
         android:padding="10dp" />
 
     <EditText
@@ -34,6 +35,7 @@
         android:background="@color/colorWhite"
         android:gravity="start"
         android:hint="Group Description"
+        android:fontFamily="@font/ubuntu_medium"
         android:inputType="textMultiLine|textCapSentences"
         android:minHeight="100dp"
         android:padding="10dp" />

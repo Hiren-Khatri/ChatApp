@@ -38,13 +38,15 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Name"
+                    android:fontFamily="@font/ubuntu_regular"
                     android:textColor="@color/colorBlack"
                     android:textSize="20sp"/>
                 <TextView
                     android:id="@+id/pTimeTv"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="33 min"/>
+                    android:text="33 min"
+                    android:fontFamily="@font/ubuntu_regular" />
 
             </LinearLayout>
 
@@ -61,14 +63,15 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:textSize="16sp"
-            android:textStyle="bold"
             android:text="Title"
+            android:fontFamily="@font/ubuntu_bold"
             android:autoLink="all"/>
         <TextView
             android:id="@+id/pDescriptionTv"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Description"
+            android:fontFamily="@font/ubuntu_regular"
             android:textColor="@color/colorBlack"
             android:autoLink="all"/>
 
@@ -89,6 +92,7 @@
                 android:layout_weight="1"
                 android:layout_height="wrap_content"
                 android:text="1.2K Likes"
+                android:fontFamily="@font/ubuntu_regular"
                 android:textColor="@color/colorPrimary" />
 
             <TextView
@@ -98,6 +102,7 @@
                 android:layout_height="wrap_content"
                 android:textAlignment="textEnd"
                 android:text="1.2K Comments"
+                android:fontFamily="@font/ubuntu_regular"
                 android:textColor="@color/colorPrimary" />
 
         </LinearLayout>
@@ -118,6 +123,7 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:text="Like"
+                android:fontFamily="@font/ubuntu_regular"
                 android:drawableStart="@drawable/ic_like_black"
                 android:drawablePadding="5dp"
                 android:background="@color/colorWhite"/>
@@ -127,6 +133,7 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:text="Comment"
+                android:fontFamily="@font/ubuntu_regular"
                 android:drawableStart="@drawable/ic_comment_black"
                 android:drawablePadding="5dp"
                 android:background="@color/colorWhite"/>
@@ -136,6 +143,7 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:text="Share"
+                android:fontFamily="@font/ubuntu_regular"
                 android:drawableStart="@drawable/ic_share_black"
                 android:drawablePadding="5dp"
                 android:background="@color/colorWhite"/>

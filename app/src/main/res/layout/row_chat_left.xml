@@ -28,6 +28,7 @@
             android:padding="15dp"
             android:text="His Message"
             android:textColor="@color/colorBlack"
+            android:fontFamily="@font/ubuntu_regular"
             android:visibility="gone"
             android:textSize="16sp" />
 
@@ -47,6 +48,7 @@
             android:layout_height="wrap_content"
             android:text="28/05/2020 6:29PM"
             android:textColor="@color/colorBlack"
+            android:fontFamily="@font/ubuntu_regular"
             android:textSize="12sp" />
 
     </LinearLayout>
@@ -57,6 +59,7 @@
         android:layout_height="wrap_content"
         android:gravity="end"
         android:text="delivered"
+        android:fontFamily="@font/ubuntu_regular"
         android:textAlignment="textEnd"
         android:textColor="@color/colorBlack"
         android:visibility="gone" />

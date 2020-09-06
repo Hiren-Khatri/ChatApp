@@ -1,4 +1,4 @@
-package app.khatrisoftwares.chatapp;
+package app.khatrisoftwares.chatapp.activities;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -7,6 +7,7 @@ import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.text.TextUtils;
 import android.util.Patterns;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
@@ -25,9 +26,11 @@ import com.google.firebase.database.FirebaseDatabase;
 
 import java.util.HashMap;
 
+import app.khatrisoftwares.chatapp.R;
+
 public class RegisterActivity extends AppCompatActivity {
     //views
-    private EditText emailEt,passwordEt;
+    private EditText nameEt,emailEt,passwordEt;
     private Button registerBtn;
     private TextView haveAccountTv;
 
@@ -44,6 +47,7 @@ public class RegisterActivity extends AppCompatActivity {
         getSupportActionBar().setDisplayShowHomeEnabled(true);
 
         //init views
+        nameEt = findViewById(R.id.nameEt);
         emailEt = findViewById(R.id.emailEt);
         passwordEt = findViewById(R.id.passwordEt);
         registerBtn = findViewById(R.id.registerBtn);
@@ -57,10 +61,16 @@ public class RegisterActivity extends AppCompatActivity {
         registerBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                String name = nameEt.getText().toString().trim();
                 String email = emailEt.getText().toString().trim();
                 String password = passwordEt.getText().toString().trim();
 
-                if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()){
+                if(TextUtils.isEmpty(name)){
+                    nameEt.setError("Required!");
+                    nameEt.requestFocus();
+                }
+
+                else if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()){
                     emailEt.setError("Invalid Email");
                     emailEt.requestFocus();
                 }
@@ -74,7 +84,7 @@ public class RegisterActivity extends AppCompatActivity {
                         InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
                         imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
                     }
-                    registerUser(email,password);
+                    registerUser(name,email,password);
                 }
             }
         });
@@ -88,7 +98,7 @@ public class RegisterActivity extends AppCompatActivity {
         });
     }
 
-    private void registerUser(String email, String password) {
+    private void registerUser(final String name, String email, String password) {
         progressDialog.show();
         firebaseAuth.createUserWithEmailAndPassword(email, password)
                 .addOnSuccessListener(new OnSuccessListener<AuthResult>() {
@@ -101,7 +111,7 @@ public class RegisterActivity extends AppCompatActivity {
                         HashMap<Object,String> hashMap = new HashMap<>();
                         hashMap.put("email",email);
                         hashMap.put("uid",uid);
-                        hashMap.put("name","");
+                        hashMap.put("name",name);
                         hashMap.put("onlineStatus","online");
                         hashMap.put("typingTo","noOne");
                         hashMap.put("phone","");
@@ -113,7 +123,9 @@ public class RegisterActivity extends AppCompatActivity {
 
                         Snackbar snackbar = Snackbar.make(findViewById(android.R.id.content),"Registered...\n"+user.getEmail(),Snackbar.LENGTH_SHORT);
                         snackbar.show();
-                        startActivity(new Intent(RegisterActivity.this, DashboardActivity.class));
+                        Intent intent = new Intent(RegisterActivity.this, DashboardActivity.class);
+                        intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                        startActivity(intent);
                         finish();
                     }
                 })

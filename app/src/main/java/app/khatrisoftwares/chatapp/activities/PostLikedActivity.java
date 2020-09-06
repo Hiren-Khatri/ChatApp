@@ -1,4 +1,4 @@
-package app.khatrisoftwares.chatapp;
+package app.khatrisoftwares.chatapp.activities;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -17,6 +17,7 @@ import com.google.firebase.database.ValueEventListener;
 import java.util.ArrayList;
 import java.util.List;
 
+import app.khatrisoftwares.chatapp.R;
 import app.khatrisoftwares.chatapp.adapters.AdapterUsers;
 import app.khatrisoftwares.chatapp.models.ModelUser;
 

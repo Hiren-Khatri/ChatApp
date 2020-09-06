@@ -14,8 +14,8 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="5dp"
         android:text="Name"
-        android:textColor="@color/colorPrimary"
-        android:textStyle="bold" />
+        android:fontFamily="@font/ubuntu_bold"
+        android:textColor="@color/colorPrimary" />
 
     <TextView
         android:id="@+id/messageTv"
@@ -24,6 +24,7 @@
         android:layout_marginStart="5dp"
         android:layout_marginTop="5dp"
         android:text="Message"
+        android:fontFamily="@font/ubuntu_regular"
         android:textColor="@color/colorBlack" />
 
     <!--    Image View-->
@@ -42,5 +43,6 @@
         android:layout_height="wrap_content"
         android:layout_marginBottom="5dp"
         android:text="Time"
+        android:fontFamily="@font/ubuntu_regular"
         android:textSize="12sp" />
 </LinearLayout>

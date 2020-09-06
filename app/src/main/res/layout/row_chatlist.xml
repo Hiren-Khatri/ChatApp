@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     app:contentPadding="3dp">
 
     <RelativeLayout
@@ -13,30 +13,34 @@
             android:id="@+id/profileIv"
             android:layout_width="70dp"
             android:layout_height="70dp"
-            android:src="@drawable/ic_face_primary"/>
+            android:src="@drawable/ic_face_primary" />
         <!--        Image view online/offline-->
         <ImageView
             android:id="@+id/onlineStatusIv"
             android:layout_width="25dp"
-            android:layout_height="25dp"/>
+            android:layout_height="25dp" />
+
         <TextView
             android:id="@+id/nameTv"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginStart="5dp"
+            android:layout_toEndOf="@id/profileIv"
+            android:fontFamily="@font/ubuntu_medium"
             android:text="His Name"
             android:textColor="@color/colorBlack"
-            android:textSize="18sp"
-            android:layout_toEndOf="@id/profileIv"
-            android:layout_marginStart="5dp"/>
+            android:textSize="18sp" />
+
         <TextView
             android:id="@+id/lastMessageTv"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="The Last message"
-            android:maxLines="2"
+            android:layout_below="@id/nameTv"
             android:layout_marginStart="5dp"
             android:layout_toEndOf="@id/profileIv"
-            android:layout_below="@id/nameTv"/>
+            android:fontFamily="@font/ubuntu_regular"
+            android:maxLines="2"
+            android:text="The Last message" />
 
     </RelativeLayout>
 

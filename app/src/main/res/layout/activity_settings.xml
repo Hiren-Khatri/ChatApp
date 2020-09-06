@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".SettingsActivity">
+    tools:context=".activities.SettingsActivity">
     
     <androidx.cardview.widget.CardView
         android:layout_width="match_parent"
@@ -15,7 +15,8 @@
             android:id="@+id/postSwitch"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Post Notification"/>
+            android:text="Post Notification"
+            android:fontFamily="@font/ubuntu_medium"/>
 
     </androidx.cardview.widget.CardView>
 

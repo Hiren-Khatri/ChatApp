@@ -1,4 +1,4 @@
-package app.khatrisoftwares.chatapp;
+package app.khatrisoftwares.chatapp.activities;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -29,6 +29,7 @@ import com.squareup.picasso.Picasso;
 import java.util.ArrayList;
 import java.util.List;
 
+import app.khatrisoftwares.chatapp.R;
 import app.khatrisoftwares.chatapp.adapters.AdapterPosts;
 import app.khatrisoftwares.chatapp.models.ModelPost;
 
@@ -131,7 +132,7 @@ public class ThereProfileActivity extends AppCompatActivity {
 
                     postList.add(myPost);
 
-                    adapterPosts = new AdapterPosts(ThereProfileActivity.this,postList);
+                    adapterPosts = new AdapterPosts(ThereProfileActivity.this,postList,true);
                     //set adapter to postRv
                     postsRv.setAdapter(adapterPosts);
                 }
@@ -171,7 +172,7 @@ public class ThereProfileActivity extends AppCompatActivity {
                         postList.add(myPost);
                     }
 
-                    adapterPosts = new AdapterPosts(ThereProfileActivity.this,postList);
+                    adapterPosts = new AdapterPosts(ThereProfileActivity.this,postList,true);
                     //set adapter to postRv
                     postsRv.setAdapter(adapterPosts);
                 }

@@ -29,10 +29,10 @@ import com.google.firebase.database.ValueEventListener;
 import java.util.ArrayList;
 import java.util.List;
 
-import app.khatrisoftwares.chatapp.GroupCreateActivity;
-import app.khatrisoftwares.chatapp.MainActivity;
+import app.khatrisoftwares.chatapp.activities.GroupCreateActivity;
+import app.khatrisoftwares.chatapp.activities.MainActivity;
 import app.khatrisoftwares.chatapp.R;
-import app.khatrisoftwares.chatapp.SettingsActivity;
+import app.khatrisoftwares.chatapp.activities.SettingsActivity;
 import app.khatrisoftwares.chatapp.adapters.AdapterUsers;
 import app.khatrisoftwares.chatapp.models.ModelUser;
 

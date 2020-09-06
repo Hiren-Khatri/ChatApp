@@ -28,8 +28,8 @@ import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
 
-import app.khatrisoftwares.chatapp.GroupCreateActivity;
-import app.khatrisoftwares.chatapp.MainActivity;
+import app.khatrisoftwares.chatapp.activities.GroupCreateActivity;
+import app.khatrisoftwares.chatapp.activities.MainActivity;
 import app.khatrisoftwares.chatapp.R;
 import app.khatrisoftwares.chatapp.adapters.AdapterGroupChatList;
 import app.khatrisoftwares.chatapp.models.ModelGroupChatList;

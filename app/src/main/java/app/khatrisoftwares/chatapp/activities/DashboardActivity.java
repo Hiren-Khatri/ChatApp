@@ -1,12 +1,19 @@
-package app.khatrisoftwares.chatapp;
+package app.khatrisoftwares.chatapp.activities;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.annotation.RequiresApi;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.FragmentTransaction;
 
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
+import android.os.PowerManager;
+import android.provider.Settings;
 import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -19,6 +26,7 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.iid.FirebaseInstanceId;
 
+import app.khatrisoftwares.chatapp.R;
 import app.khatrisoftwares.chatapp.fragments.ChatListFragment;
 import app.khatrisoftwares.chatapp.fragments.GroupChatsFragment;
 import app.khatrisoftwares.chatapp.fragments.HomeFragment;
@@ -33,6 +41,7 @@ public class DashboardActivity extends AppCompatActivity {
 
     String mUID;
 
+    private int REQUEST_CODE_BATTERY_OPTIMIZATIONS = 1;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -52,6 +61,7 @@ public class DashboardActivity extends AppCompatActivity {
         ftl.add(R.id.content,homeFragment,"").commit();
 
         checkUserStatus();
+        checkForBatteryOptimizations();
 
     }
 
@@ -168,5 +178,47 @@ public class DashboardActivity extends AppCompatActivity {
         super.onStart();
     }
 
+    private  void checkForBatteryOptimizations(){
+        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M){
+            PowerManager powerManager = (PowerManager)getSystemService(POWER_SERVICE);
+            if (powerManager != null && !powerManager.isIgnoringBatteryOptimizations(getPackageName())) {
+                AlertDialog.Builder builder = new AlertDialog.Builder(DashboardActivity.this);
+                builder.setTitle("Warning");
+                builder.setMessage("Battery optimization is enabled.It can interrupt running background service");
+                builder.setPositiveButton("Disable", (dialog, which) -> {
+                    Intent intent = new Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS);
+                    startActivityForResult(intent,REQUEST_CODE_BATTERY_OPTIMIZATIONS);
+                });
+                builder.setNegativeButton("Cancel", (dialog, which) -> dialog.dismiss());
+                builder.create().show();
+            }else{
+                checkForDrawOverOtherApps();
+            }
+        }
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.M)
+    private void checkForDrawOverOtherApps(){
+        if (!Settings.canDrawOverlays(this)) {
+            AlertDialog.Builder builder = new AlertDialog.Builder(DashboardActivity.this);
+            builder.setTitle("Warning");
+            builder.setMessage("Draw over other apps permission is needed.It can interrupt running background service");
+            builder.setNeutralButton("Go to Settings",(dialog, which) -> {
+                Intent intent = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, Uri.parse("package:" + getPackageName()));
+                startActivityForResult(intent, 0);
+            });
+            builder.create().show();
+
+        }
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        if (requestCode == REQUEST_CODE_BATTERY_OPTIMIZATIONS){
+            checkForBatteryOptimizations();
+        }
+    }
 
 }

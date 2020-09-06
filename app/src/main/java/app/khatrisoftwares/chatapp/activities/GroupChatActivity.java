@@ -1,4 +1,4 @@
-package app.khatrisoftwares.chatapp;
+package app.khatrisoftwares.chatapp.activities;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -18,7 +18,6 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.text.TextUtils;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -41,23 +40,26 @@ import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
+import com.google.gson.Gson;
 import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
+import app.khatrisoftwares.chatapp.R;
 import app.khatrisoftwares.chatapp.adapters.AdapterGroupChat;
+import app.khatrisoftwares.chatapp.listeners.UsersListener;
 import app.khatrisoftwares.chatapp.models.ModelGroupChat;
+import app.khatrisoftwares.chatapp.models.User;
 
-public class GroupChatActivity extends AppCompatActivity {
+public class GroupChatActivity extends AppCompatActivity implements UsersListener {
     private FirebaseAuth firebaseAuth;
 
     private String groupId,myGroupRole="";
 
-    private Toolbar toolbar;
     private ImageView groupIconIv;
     private TextView groupTitleTv;
-    private ImageButton attachBtn,sendBtn;
     private EditText messageEt;
     private RecyclerView chatRv;
 
@@ -76,20 +78,28 @@ public class GroupChatActivity extends AppCompatActivity {
     //    uri of picked image
     private Uri image_uri = null;
 
+    private List<User> userList;
+    private User myUser;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_group_chat);
 
-        toolbar = findViewById(R.id.toolbar);
+        Toolbar toolbar = findViewById(R.id.toolbar);
         groupIconIv = findViewById(R.id.groupIconIv);
         groupTitleTv = findViewById(R.id.groupTitleTv);
-        attachBtn = findViewById(R.id.attachBtn);
-        sendBtn = findViewById(R.id.sendBtn);
+        ImageButton attachBtn = findViewById(R.id.attachBtn);
+        ImageButton sendBtn = findViewById(R.id.sendBtn);
         messageEt = findViewById(R.id.messageEt);
         chatRv = findViewById(R.id.chatRv);
+        ImageButton backBtn = findViewById(R.id.backBtn);
+        ImageView imageMeeting = findViewById(R.id.imageMeeting);
 
         setSupportActionBar(toolbar);
+
+        userList = new ArrayList<>();
+        myUser = new User();
 
         //int request permission arrays
         cameraPermissions = new String[]{Manifest.permission.CAMERA, Manifest.permission.WRITE_EXTERNAL_STORAGE};
@@ -104,28 +114,122 @@ public class GroupChatActivity extends AppCompatActivity {
         loadGroupInfo();
         loadGroupMessages();
         loadMyGroupRole();
+        loadUsersInfo();
+        loadMyInfo();
 
-        sendBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
+
+
+        sendBtn.setOnClickListener(v -> {
 //                notify = true;
-                String message = messageEt.getText().toString().trim();
-                //check if text is empty or not
-                if (TextUtils.isEmpty(message)){
-                    //text empty
-                }else {
-                    sendMessage(message);
-                }
-                //reset edittext after sending
-                messageEt.setText("");
+            String message = messageEt.getText().toString().trim();
+            //check if text is empty or not
+            if (!TextUtils.isEmpty(message)){
+                sendMessage(message);
             }
+            //reset edittext after sending
+            messageEt.setText("");
         });
 
-        attachBtn.setOnClickListener(new View.OnClickListener() {
+        attachBtn.setOnClickListener(v -> {
+            //pick image from gallery
+            showImagePicDialog();
+        });
+
+        backBtn.setOnClickListener(v -> onBackPressed());
+
+        imageMeeting.setOnClickListener(v -> {
+            Intent intent1 = new Intent(getApplicationContext(),OutgoingInvitationActivity.class);
+            intent1.putExtra("selectedUsers",new Gson().toJson(userList));
+            intent1.putExtra("myUser", myUser);
+            intent1.putExtra("type","video");
+            intent1.putExtra("isMultiple",true);
+            startActivity(intent1);
+        });
+    }
+
+    private void loadMyInfo(){
+        FirebaseDatabase.getInstance().getReference("Users")
+                .child(firebaseAuth.getUid())
+                .addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot snapshot) {
+                        String name = snapshot.child("name").getValue().toString();
+                        String email = snapshot.child("email").getValue().toString();
+
+                        myUser.firstName = name;
+                        myUser.lastName = "";
+                        myUser.email = email;
+                    }
+
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError error) {
+
+                    }
+                });
+
+        FirebaseDatabase.getInstance().getReference("Tokens")
+                .child(firebaseAuth.getUid())
+                .addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot snapshot) {
+                        myUser.token = snapshot.child("token").getValue().toString();
+                    }
+
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError error) {
+
+                    }
+                });
+    }
+
+    private void  loadUsersInfo(){
+        DatabaseReference groupDb = FirebaseDatabase.getInstance().getReference("Groups").child(groupId);
+        DatabaseReference userDb = FirebaseDatabase.getInstance().getReference("Users");
+        DatabaseReference tokenDb = FirebaseDatabase.getInstance().getReference("Tokens");
+
+              groupDb.child("Participants").addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
-            public void onClick(View v) {
-                //pick image from gallery
-                showImagePicDialog();
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                userList.clear();
+                for (DataSnapshot postSnapshot: snapshot.getChildren()) {
+                    if(!postSnapshot.getKey().equals(firebaseAuth.getUid())){
+                        User user = new User();
+                        userDb.child(postSnapshot.getKey()).addListenerForSingleValueEvent(new ValueEventListener() {
+                            @Override
+                            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                                String name = snapshot.child("name").getValue().toString();
+                                String email = snapshot.child("name").getValue().toString();
+
+                                user.firstName = name;
+                                user.email = email;
+                                user.lastName = "";
+                            }
+
+                            @Override
+                            public void onCancelled(@NonNull DatabaseError error) {
+
+                            }
+                        });
+                        tokenDb.child(postSnapshot.getKey()).addListenerForSingleValueEvent(new ValueEventListener() {
+                            @Override
+                            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                                user.token = snapshot.child("token").getValue().toString();
+                            }
+
+                            @Override
+                            public void onCancelled(@NonNull DatabaseError error) {
+
+                            }
+                        });
+
+                        userList.add(user);
+                    }
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+
             }
         });
     }
@@ -143,48 +247,42 @@ public class GroupChatActivity extends AppCompatActivity {
         StorageReference storageReference = FirebaseStorage.getInstance().getReference(fileNameAndPath);
         //upload image
         storageReference.putFile(image_uri)
-                .addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
-                    @Override
-                    public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
-                        Task<Uri> uriTask = taskSnapshot.getStorage().getDownloadUrl();
-                        while (!uriTask.isSuccessful());
-                        Uri downloadUri = uriTask.getResult();
+                .addOnSuccessListener(taskSnapshot -> {
+                    Task<Uri> uriTask = taskSnapshot.getStorage().getDownloadUrl();
+                    while (!uriTask.isSuccessful());
+                    Uri downloadUri = uriTask.getResult();
 
-                        if (uriTask.isSuccessful()){
-                            String timestamp = String.valueOf(System.currentTimeMillis());
-                            HashMap<String,Object> hashMap = new HashMap<>();
-                            hashMap.put("sender",firebaseAuth.getUid());
-                            hashMap.put("message",downloadUri.toString());
-                            hashMap.put("timestamp",timestamp);
-                            hashMap.put("type","image");
+                    if (uriTask.isSuccessful()){
+                        String timestamp = String.valueOf(System.currentTimeMillis());
+                        HashMap<String,Object> hashMap = new HashMap<>();
+                        hashMap.put("sender",firebaseAuth.getUid());
+                        hashMap.put("message",downloadUri.toString());
+                        hashMap.put("timestamp",timestamp);
+                        hashMap.put("type","image");
 
-                            DatabaseReference reference1 = FirebaseDatabase.getInstance().getReference("Groups");
-                            reference1.child(groupId).child("Messages").child(timestamp).setValue(hashMap)
-                                    .addOnSuccessListener(new OnSuccessListener<Void>() {
-                                        @Override
-                                        public void onSuccess(Void aVoid) {
-                                            //message sent
-                                            messageEt.setText("");
-                                            pd.dismiss();
-                                        }
-                                    })
-                                    .addOnFailureListener(new OnFailureListener() {
-                                        @Override
-                                        public void onFailure(@NonNull Exception e) {
-                                            pd.dismiss();
-                                            Toast.makeText(GroupChatActivity.this, ""+e.getMessage(), Toast.LENGTH_SHORT).show();
-                                            Snackbar.make(findViewById(android.R.id.content), "" + e.getMessage(), Snackbar.LENGTH_SHORT).setBackgroundTint(getColor(R.color.colorPrimaryDark)).show();
-                                        }
-                                    });
-                        }
+                        DatabaseReference reference1 = FirebaseDatabase.getInstance().getReference("Groups");
+                        reference1.child(groupId).child("Messages").child(timestamp).setValue(hashMap)
+                                .addOnSuccessListener(new OnSuccessListener<Void>() {
+                                    @Override
+                                    public void onSuccess(Void aVoid) {
+                                        //message sent
+                                        messageEt.setText("");
+                                        pd.dismiss();
+                                    }
+                                })
+                                .addOnFailureListener(new OnFailureListener() {
+                                    @Override
+                                    public void onFailure(@NonNull Exception e) {
+                                        pd.dismiss();
+                                        Toast.makeText(GroupChatActivity.this, ""+e.getMessage(), Toast.LENGTH_SHORT).show();
+                                        Snackbar.make(findViewById(android.R.id.content), "" + e.getMessage(), Snackbar.LENGTH_SHORT).setBackgroundTint(getColor(R.color.colorPrimaryDark)).show();
+                                    }
+                                });
                     }
                 })
-                .addOnFailureListener(new OnFailureListener() {
-                    @Override
-                    public void onFailure(@NonNull Exception e) {
-                        Snackbar.make(findViewById(android.R.id.content),""+e.getMessage(),Snackbar.LENGTH_SHORT).setBackgroundTint(getColor(R.color.colorPrimaryDark)).show();
-                        pd.dismiss();
-                    }
+                .addOnFailureListener(e -> {
+                    Snackbar.make(findViewById(android.R.id.content),""+e.getMessage(),Snackbar.LENGTH_SHORT).setBackgroundTint(getColor(R.color.colorPrimaryDark)).show();
+                    pd.dismiss();
                 });
     }
 
@@ -448,6 +546,41 @@ public class GroupChatActivity extends AppCompatActivity {
             }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public void initiateVideoMeeting(User user) {
+//        if (user.token == null || user.token.trim().isEmpty()){
+//            Toast.makeText(this, user.firstName + "" + user.lastName +" is not available for meeting", Toast.LENGTH_SHORT).show();
+//        }else {
+//            Intent intent = new Intent(getApplicationContext(),OutgoingInvitationActivity.class);
+//            intent.putExtra("user",user);
+//            intent.putExtra("type","video");
+//            startActivity(intent);
+//        }
+    }
+
+    @Override
+    public void initiateAudioMeeting(User user) {
+//        if (user.token == null || user.token.trim().isEmpty()){
+//            Toast.makeText(this, user.firstName + "" + user.lastName +" is not available for meeting", Toast.LENGTH_SHORT).show();
+//        }else {
+//            Intent intent = new Intent(getApplicationContext(),OutgoingInvitationActivity.class);
+//            intent.putExtra("user",user);
+//            intent.putExtra("type","audio");
+//            startActivity(intent);
+//        }
+    }
+
+    @Override
+    public void onMultipleUserAction(boolean isMultipleUsersSelected) {
+//            imageMeeting.setOnClickListener(v -> {
+//                Intent intent = new Intent(getApplicationContext(),OutgoingInvitationActivity.class);
+//                intent.putExtra("selectedUsers",new Gson().toJson(userList));
+//                intent.putExtra("type","video");
+//                intent.putExtra("isMultiple",true);
+//                startActivity(intent);
+//            });
     }
 
 }

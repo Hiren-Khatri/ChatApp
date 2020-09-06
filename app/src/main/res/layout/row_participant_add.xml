@@ -29,6 +29,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Person Name"
+                android:fontFamily="@font/ubuntu_medium"
                 android:textSize="18sp"
                 android:textColor="@color/colorBlack"/>
             <TextView
@@ -37,12 +38,14 @@
                 android:layout_height="wrap_content"
                 android:text="Person Email"
                 android:textSize="18sp"
+                android:fontFamily="@font/ubuntu_regular"
                 android:textColor="@color/colorBlack"/>
 <!--            Participant/Creator/Admin-->
             <TextView
                 android:id="@+id/statusTv"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:fontFamily="@font/ubuntu_regular"
                 android:text="Status"/>
         </LinearLayout>
 

@@ -45,11 +45,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 
-import app.khatrisoftwares.chatapp.AddPostActivity;
-import app.khatrisoftwares.chatapp.PostDetailActivity;
-import app.khatrisoftwares.chatapp.PostLikedActivity;
+import app.khatrisoftwares.chatapp.activities.AddPostActivity;
+import app.khatrisoftwares.chatapp.activities.PostDetailActivity;
+import app.khatrisoftwares.chatapp.activities.PostLikedActivity;
 import app.khatrisoftwares.chatapp.R;
-import app.khatrisoftwares.chatapp.ThereProfileActivity;
+import app.khatrisoftwares.chatapp.activities.ThereProfileActivity;
 import app.khatrisoftwares.chatapp.models.ModelPost;
 
 public class AdapterPosts extends RecyclerView.Adapter<AdapterPosts.HolderPosts> {
@@ -61,14 +61,15 @@ public class AdapterPosts extends RecyclerView.Adapter<AdapterPosts.HolderPosts>
     private DatabaseReference likesRef; //for likes database node
     private DatabaseReference postsRef;//for posts database node
 
-    boolean mProcessLike = false;
+    boolean mProcessLike = false,isOnProfilePage;
 
-    public AdapterPosts(Context context, List<ModelPost> postList) {
+    public AdapterPosts(Context context, List<ModelPost> postList,boolean isOnProfilePage) {
         this.context = context;
         this.postList = postList;
         myUid = FirebaseAuth.getInstance().getCurrentUser().getUid();
         likesRef = FirebaseDatabase.getInstance().getReference("Likes");
         postsRef = FirebaseDatabase.getInstance().getReference("Posts");
+         this.isOnProfilePage=isOnProfilePage;
     }
 
     @NonNull
@@ -198,9 +199,11 @@ public class AdapterPosts extends RecyclerView.Adapter<AdapterPosts.HolderPosts>
             @Override
             public void onClick(View v) {
                 //go to ThereProfileActivity with uid of that user
-                Intent intent = new Intent(context, ThereProfileActivity.class);
-                intent.putExtra("uid", uid);
-                context.startActivity(intent);
+                if(!isOnProfilePage) {
+                    Intent intent = new Intent(context, ThereProfileActivity.class);
+                    intent.putExtra("uid", uid);
+                    context.startActivity(intent);
+                }
             }
         });
 

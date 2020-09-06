@@ -29,7 +29,7 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Locale;
 
-import app.khatrisoftwares.chatapp.PostDetailActivity;
+import app.khatrisoftwares.chatapp.activities.PostDetailActivity;
 import app.khatrisoftwares.chatapp.R;
 import app.khatrisoftwares.chatapp.models.ModelNotification;
 

@@ -13,7 +13,6 @@ import android.os.Bundle;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.widget.SearchView;
-import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.core.view.MenuItemCompat;
 import androidx.fragment.app.Fragment;
@@ -59,10 +58,10 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-import app.khatrisoftwares.chatapp.AddPostActivity;
-import app.khatrisoftwares.chatapp.MainActivity;
+import app.khatrisoftwares.chatapp.activities.AddPostActivity;
+import app.khatrisoftwares.chatapp.activities.MainActivity;
 import app.khatrisoftwares.chatapp.R;
-import app.khatrisoftwares.chatapp.SettingsActivity;
+import app.khatrisoftwares.chatapp.activities.SettingsActivity;
 import app.khatrisoftwares.chatapp.adapters.AdapterPosts;
 import app.khatrisoftwares.chatapp.models.ModelPost;
 
@@ -203,7 +202,7 @@ public class ProfileFragment extends Fragment {
 
                     postList.add(myPost);
 
-                    adapterPosts = new AdapterPosts(getActivity(),postList);
+                    adapterPosts = new AdapterPosts(getActivity(),postList,true);
                     //set adapter to postRv
                     postsRv.setAdapter(adapterPosts);
                 }
@@ -245,7 +244,7 @@ public class ProfileFragment extends Fragment {
                         postList.add(myPost);
                     }
 
-                    adapterPosts = new AdapterPosts(getActivity(),postList);
+                    adapterPosts = new AdapterPosts(getActivity(),postList,true);
                     //set adapter to postRv
                     postsRv.setAdapter(adapterPosts);
                 }

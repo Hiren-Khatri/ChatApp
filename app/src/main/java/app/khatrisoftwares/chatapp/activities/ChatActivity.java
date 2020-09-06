@@ -1,4 +1,4 @@
-package app.khatrisoftwares.chatapp;
+package app.khatrisoftwares.chatapp.activities;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -69,24 +69,27 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
+import app.khatrisoftwares.chatapp.R;
 import app.khatrisoftwares.chatapp.adapters.AdapterChat;
-import app.khatrisoftwares.chatapp.adapters.AdapterUsers;
+import app.khatrisoftwares.chatapp.listeners.UsersListener;
 import app.khatrisoftwares.chatapp.models.ModelChat;
 import app.khatrisoftwares.chatapp.models.ModelUser;
+import app.khatrisoftwares.chatapp.models.User;
 import app.khatrisoftwares.chatapp.notifications.Data;
 import app.khatrisoftwares.chatapp.notifications.Sender;
 import app.khatrisoftwares.chatapp.notifications.Token;
 
-public class ChatActivity extends AppCompatActivity {
+public class ChatActivity extends AppCompatActivity implements UsersListener {
     //views of xml
     private Toolbar toolbar;
     private RecyclerView chatRv;
-    private ImageView profileIv,blockIv;
-    private TextView nameTv,userStatusTv;
+    private ImageView profileIv, blockIv;
+    private TextView nameTv, userStatusTv;
     private EditText messageEt;
-    private ImageButton sendBtn,attachBtn;
+    private ImageButton sendBtn, attachBtn, backBtn;
+    private ImageView imageAudioMeeting, imageVideoMeeting;
 
-    private String hisUid,myUid;
+    private String hisUid, myUid;
     private String hisImage;
     boolean isBlocked = false;
 
@@ -114,6 +117,10 @@ public class ChatActivity extends AppCompatActivity {
     //    uri of picked image
     private Uri image_uri = null;
 
+    String name, email, token;
+
+    private User user, myUser;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -137,6 +144,13 @@ public class ChatActivity extends AppCompatActivity {
         messageEt = findViewById(R.id.messageEt);
         sendBtn = findViewById(R.id.sendBtn);
         attachBtn = findViewById(R.id.attachBtn);
+        backBtn = findViewById(R.id.backBtn);
+
+        imageAudioMeeting = findViewById(R.id.imageAudioMeeting);
+        imageVideoMeeting = findViewById(R.id.imageVideoMeeting);
+
+        user = new User();
+        myUser = new User();
 
         requestQueue = Volley.newRequestQueue(getApplicationContext());
 
@@ -145,8 +159,6 @@ public class ChatActivity extends AppCompatActivity {
         layoutManager.setStackFromEnd(true);
         chatRv.setHasFixedSize(true);
         chatRv.setLayoutManager(layoutManager);
-
-
 
         firebaseAuth = FirebaseAuth.getInstance();
         firebaseDatabase = FirebaseDatabase.getInstance();
@@ -158,33 +170,36 @@ public class ChatActivity extends AppCompatActivity {
         userQuery.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                for (DataSnapshot ds: dataSnapshot.getChildren()){
+                for (DataSnapshot ds : dataSnapshot.getChildren()) {
 //                    get data
-                    String name = ds.child("name").getValue().toString();
+                    name = ds.child("name").getValue().toString();
+                    email = ds.child("email").getValue().toString();
                     hisImage = ds.child("image").getValue().toString();
                     String typingStatus = ds.child("typingTo").getValue().toString();
 
                     //check typing status
-                    if (typingStatus.equals(myUid)){
+                    if (typingStatus.equals(myUid)) {
                         userStatusTv.setText("typing...");
-                    }
-                    else {
+                    } else {
                         String onlineStatus = ds.child("onlineStatus").getValue().toString();
 
-                        if (onlineStatus.equals("online")){
+                        if (onlineStatus.equals("online")) {
                             userStatusTv.setText(onlineStatus);
                         } else {
                             //convert timestamp to proper date
                             Calendar calendar = Calendar.getInstance(Locale.getDefault());
                             calendar.setTimeInMillis(Long.parseLong(onlineStatus));
-                            String dateTime = DateFormat.format("dd/MM/yyyy hh:mm aa",calendar).toString();
-                            userStatusTv.setText("Last seen at "+dateTime);
+                            String dateTime = DateFormat.format("dd/MM/yyyy hh:mm aa", calendar).toString();
+                            userStatusTv.setText("Last seen at " + dateTime);
                         }
                     }
                     nameTv.setText(name);
+                    user.firstName = name;
+                    user.lastName = "";
+                    user.email = email;
                     try {
                         Picasso.get().load(hisImage).placeholder(R.drawable.ic_face_white).into(profileIv);
-                    }catch (Exception e){
+                    } catch (Exception e) {
                         profileIv.setImageResource(R.drawable.ic_face_white);
                     }
                 }
@@ -196,15 +211,28 @@ public class ChatActivity extends AppCompatActivity {
             }
         });
 
+        firebaseDatabase.getReference("Tokens").child(hisUid).addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                token = snapshot.child("token").getValue().toString();
+                user.token = token;
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+
+            }
+        });
+
         sendBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 notify = true;
                 String message = messageEt.getText().toString().trim();
                 //check if text is empty or not
-                if (TextUtils.isEmpty(message)){
+                if (TextUtils.isEmpty(message)) {
                     //text empty
-                }else {
+                } else {
                     sendMessage(message);
                 }
                 //reset edittext after sending
@@ -230,7 +258,7 @@ public class ChatActivity extends AppCompatActivity {
 
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
-                if (s.toString().trim().length() ==0){
+                if (s.toString().trim().length() == 0) {
                     checkTypingStatus("noOne");
                 } else {
                     checkTypingStatus(hisUid); //uid of receiver
@@ -246,7 +274,7 @@ public class ChatActivity extends AppCompatActivity {
         blockIv.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (isBlocked){
+                if (isBlocked) {
                     unBlockUser();
                 } else {
                     blockUser();
@@ -260,8 +288,32 @@ public class ChatActivity extends AppCompatActivity {
         checkUserStatus();
 
         checkIsBlocked();
-        
+
         seenMessage();
+
+        firebaseDatabase.getReference("Users").child(myUid).addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot ds) {
+                name = ds.child("name").getValue().toString();
+                email = ds.child("email").getValue().toString();
+                myUser.firstName = name;
+                myUser.lastName = "";
+                myUser.email = email;
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+
+            }
+        });
+
+        imageAudioMeeting.setOnClickListener(v -> this.initiateAudioMeeting(user));
+        imageVideoMeeting.setOnClickListener(v -> this.initiateVideoMeeting(user));
+
+        backBtn.setOnClickListener(v -> {
+            onBackPressed();
+        });
+
     }
 
     private void checkIsBlocked() {
@@ -272,8 +324,8 @@ public class ChatActivity extends AppCompatActivity {
                 .addValueEventListener(new ValueEventListener() {
                     @Override
                     public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                        for (DataSnapshot ds: dataSnapshot.getChildren()){
-                            if (ds.exists()){
+                        for (DataSnapshot ds : dataSnapshot.getChildren()) {
+                            if (ds.exists()) {
                                 blockIv.setImageResource(R.drawable.ic_blocked_red);
                                 isBlocked = true;
                             }
@@ -290,7 +342,7 @@ public class ChatActivity extends AppCompatActivity {
     private void blockUser() {
         //put value in hashMap
         HashMap<String, String> hashMap = new HashMap<>();
-        hashMap.put("uid",hisUid);
+        hashMap.put("uid", hisUid);
 
         //block user by adding his uid to current user's "BlockedUsers" node
         DatabaseReference ref = FirebaseDatabase.getInstance().getReference("Users");
@@ -306,7 +358,7 @@ public class ChatActivity extends AppCompatActivity {
                 .addOnFailureListener(new OnFailureListener() {
                     @Override
                     public void onFailure(@NonNull Exception e) {
-                        Toast.makeText(ChatActivity.this, "Failed "+e.getMessage(), Toast.LENGTH_SHORT).show();
+                        Toast.makeText(ChatActivity.this, "Failed " + e.getMessage(), Toast.LENGTH_SHORT).show();
                     }
                 });
     }
@@ -317,8 +369,8 @@ public class ChatActivity extends AppCompatActivity {
                 .addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override
                     public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                        for (DataSnapshot ds: dataSnapshot.getChildren()){
-                            if (ds.exists()){
+                        for (DataSnapshot ds : dataSnapshot.getChildren()) {
+                            if (ds.exists()) {
                                 ds.getRef().removeValue()
                                         .addOnSuccessListener(new OnSuccessListener<Void>() {
                                             @Override
@@ -330,7 +382,7 @@ public class ChatActivity extends AppCompatActivity {
                                         .addOnFailureListener(new OnFailureListener() {
                                             @Override
                                             public void onFailure(@NonNull Exception e) {
-                                                Toast.makeText(ChatActivity.this, "Failed "+e.getMessage(), Toast.LENGTH_SHORT).show();
+                                                Toast.makeText(ChatActivity.this, "Failed " + e.getMessage(), Toast.LENGTH_SHORT).show();
                                             }
                                         });
                             }
@@ -349,11 +401,11 @@ public class ChatActivity extends AppCompatActivity {
         seenListener = userRefForSeen.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                for (DataSnapshot ds:dataSnapshot.getChildren()){
+                for (DataSnapshot ds : dataSnapshot.getChildren()) {
                     ModelChat chat = ds.getValue(ModelChat.class);
-                    if (chat.getReceiver().equals(myUid) && chat.getSender().equals(hisUid)){
-                        HashMap<String,Object> hasSeenHashMap = new HashMap<>();
-                        hasSeenHashMap.put("isSeen",true);
+                    if (chat.getReceiver().equals(myUid) && chat.getSender().equals(hisUid)) {
+                        HashMap<String, Object> hasSeenHashMap = new HashMap<>();
+                        hasSeenHashMap.put("isSeen", true);
                         ds.getRef().updateChildren(hasSeenHashMap);
                     }
                 }
@@ -373,14 +425,14 @@ public class ChatActivity extends AppCompatActivity {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 chatList.clear();
-                for (DataSnapshot ds: dataSnapshot.getChildren()){
+                for (DataSnapshot ds : dataSnapshot.getChildren()) {
                     ModelChat chat = ds.getValue(ModelChat.class);
                     if (chat.getReceiver().equals(myUid) && chat.getSender().equals(hisUid) ||
-                            chat.getReceiver().equals(hisUid) && chat.getSender().equals(myUid)){
+                            chat.getReceiver().equals(hisUid) && chat.getSender().equals(myUid)) {
                         chatList.add(chat);
                     }
 
-                    adapterChat = new AdapterChat(ChatActivity.this,chatList,hisImage);
+                    adapterChat = new AdapterChat(ChatActivity.this, chatList, hisImage);
                     adapterChat.notifyDataSetChanged();
                     chatRv.setAdapter(adapterChat);
                     chatRv.smoothScrollToPosition(chatRv.getAdapter().getItemCount());
@@ -399,13 +451,13 @@ public class ChatActivity extends AppCompatActivity {
 
         String timestamp = String.valueOf(System.currentTimeMillis());
 
-        HashMap<String,Object> hashMap = new HashMap<>();
-        hashMap.put("sender",myUid);
-        hashMap.put("receiver",hisUid);
-        hashMap.put("message",message);
-        hashMap.put("timestamp",timestamp);
-        hashMap.put("isSeen",false);
-        hashMap.put("type","text");
+        HashMap<String, Object> hashMap = new HashMap<>();
+        hashMap.put("sender", myUid);
+        hashMap.put("receiver", hisUid);
+        hashMap.put("message", message);
+        hashMap.put("timestamp", timestamp);
+        hashMap.put("isSeen", false);
+        hashMap.put("type", "text");
 
         ref.child("Chats").push().setValue(hashMap);
         DatabaseReference database = FirebaseDatabase.getInstance().getReference("Users").child(myUid);
@@ -414,8 +466,8 @@ public class ChatActivity extends AppCompatActivity {
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 ModelUser user = dataSnapshot.getValue(ModelUser.class);
 
-                if (notify){
-                    sendNotification(hisUid,user.getName(),message);
+                if (notify) {
+                    sendNotification(hisUid, user.getName(), message);
                 }
                 notify = false;
             }
@@ -434,7 +486,7 @@ public class ChatActivity extends AppCompatActivity {
         ref1.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                if (!dataSnapshot.exists()){
+                if (!dataSnapshot.exists()) {
                     ref1.child("id").setValue(hisUid);
                 }
             }
@@ -451,7 +503,7 @@ public class ChatActivity extends AppCompatActivity {
         ref2.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                if (!dataSnapshot.exists()){
+                if (!dataSnapshot.exists()) {
                     ref2.child("id").setValue(myUid);
                 }
             }
@@ -473,12 +525,12 @@ public class ChatActivity extends AppCompatActivity {
 
         final String timestamp = String.valueOf(System.currentTimeMillis());
 
-        String filePathAndName = "ChatImages/"+"post_"+timestamp;
+        String filePathAndName = "ChatImages/" + "post_" + timestamp;
 
         //chat node wii be create that will contain all images sent via chat
-        Bitmap bitmap = MediaStore.Images.Media.getBitmap(this.getContentResolver(),image_uri);
+        Bitmap bitmap = MediaStore.Images.Media.getBitmap(this.getContentResolver(), image_uri);
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        bitmap.compress(Bitmap.CompressFormat.PNG,100,baos);
+        bitmap.compress(Bitmap.CompressFormat.PNG, 100, baos);
         byte[] data = baos.toByteArray();
         StorageReference ref = FirebaseStorage.getInstance().getReference().child(filePathAndName);
         ref.putBytes(data)
@@ -489,19 +541,19 @@ public class ChatActivity extends AppCompatActivity {
                         progressDialog.dismiss();
                         //get url of uploaded image
                         Task<Uri> uriTask = taskSnapshot.getStorage().getDownloadUrl();
-                        while (!uriTask.isSuccessful());
+                        while (!uriTask.isSuccessful()) ;
                         String downloadUri = uriTask.getResult().toString();
-                        if (uriTask.isSuccessful()){
+                        if (uriTask.isSuccessful()) {
                             //add image uri and other info to databse
                             DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference();
                             //required data
                             HashMap<String, Object> hashMap = new HashMap<>();
-                            hashMap.put("sender",myUid);
-                            hashMap.put("receiver",hisUid);
-                            hashMap.put("message",downloadUri);
-                            hashMap.put("timestamp",timestamp);
-                            hashMap.put("type","image");
-                            hashMap.put("isSeen",false);
+                            hashMap.put("sender", myUid);
+                            hashMap.put("receiver", hisUid);
+                            hashMap.put("message", downloadUri);
+                            hashMap.put("timestamp", timestamp);
+                            hashMap.put("type", "image");
+                            hashMap.put("isSeen", false);
 
                             databaseReference.child("Chats").push().setValue(hashMap);
 
@@ -512,8 +564,8 @@ public class ChatActivity extends AppCompatActivity {
                                 public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                                     ModelUser user = dataSnapshot.getValue(ModelUser.class);
 
-                                    if (notify){
-                                        sendNotification(hisUid,user.getName(),"Sent you a photo...");
+                                    if (notify) {
+                                        sendNotification(hisUid, user.getName(), "Sent you a photo...");
                                     }
                                     notify = false;
                                 }
@@ -532,7 +584,7 @@ public class ChatActivity extends AppCompatActivity {
                             ref1.addValueEventListener(new ValueEventListener() {
                                 @Override
                                 public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                                    if (!dataSnapshot.exists()){
+                                    if (!dataSnapshot.exists()) {
                                         ref1.child("id").setValue(hisUid);
                                     }
                                 }
@@ -549,7 +601,7 @@ public class ChatActivity extends AppCompatActivity {
                             ref2.addValueEventListener(new ValueEventListener() {
                                 @Override
                                 public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                                    if (!dataSnapshot.exists()){
+                                    if (!dataSnapshot.exists()) {
                                         ref2.child("id").setValue(myUid);
                                     }
                                 }
@@ -577,17 +629,17 @@ public class ChatActivity extends AppCompatActivity {
         query.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                for (DataSnapshot ds: dataSnapshot.getChildren()){
+                for (DataSnapshot ds : dataSnapshot.getChildren()) {
                     Token token = ds.getValue(Token.class);
                     Data data = new Data(
-                            ""+myUid,
-                            ""+name+":"+message,
+                            "" + myUid,
+                            "" + name + ":" + message,
                             "New Message",
-                            ""+hisUid,
+                            "" + hisUid,
                             "ChatNotification",
                             R.drawable.firebase_logo);
 
-                    Sender sender = new Sender(data,token.getToken());
+                    Sender sender = new Sender(data, token.getToken());
 
                     //fcm json object request
                     try {
@@ -597,21 +649,21 @@ public class ChatActivity extends AppCompatActivity {
                                     @Override
                                     public void onResponse(JSONObject response) {
                                         //response of the request
-                                        Log.d("JSON_RESPONSE","onResponse: "+response.toString());
+                                        Log.d("JSON_RESPONSE", "onResponse: " + response.toString());
 
                                     }
                                 }, new Response.ErrorListener() {
                             @Override
                             public void onErrorResponse(VolleyError error) {
-                                Log.d("JSON_ERROR","onResponse  : "+error.toString());
+                                Log.d("JSON_ERROR", "onResponse  : " + error.toString());
                             }
-                        }){
+                        }) {
                             @Override
                             public Map<String, String> getHeaders() throws AuthFailureError {
                                 //put params
-                                Map<String ,String> headers = new HashMap<>();
-                                headers.put("Content-Type","application/json");
-                                headers.put("Authorization","key=AAAAm3gR4P4:APA91bFg_g4-DWLCFSwBcv33atHYGGyRniykAtyndlntLyQsSlf8wD6JyXfc0MIZQWgzbrhv76oFqxxyg0jr2RQXa_-TSrKfAaLEywXSs9TlMiAzml7L9iT-p91ESgLrEoXbWk9cJdgt");
+                                Map<String, String> headers = new HashMap<>();
+                                headers.put("Content-Type", "application/json");
+                                headers.put("Authorization", "key=AAAAm3gR4P4:APA91bFg_g4-DWLCFSwBcv33atHYGGyRniykAtyndlntLyQsSlf8wD6JyXfc0MIZQWgzbrhv76oFqxxyg0jr2RQXa_-TSrKfAaLEywXSs9TlMiAzml7L9iT-p91ESgLrEoXbWk9cJdgt");
                                 return headers;
                             }
                         };
@@ -632,29 +684,30 @@ public class ChatActivity extends AppCompatActivity {
         });
     }
 
-    private void checkUserStatus(){
+    private void checkUserStatus() {
         FirebaseUser user = firebaseAuth.getCurrentUser();
-        if (user!=null){
+        if (user != null) {
             //user signed in here
             myUid = user.getUid();
         } else {
             //user not signed in,go to main activity
-            startActivity(new Intent(this,MainActivity.class));
+            startActivity(new Intent(this, MainActivity.class));
             finish();
         }
     }
-    private void checkOnlineStatus(String status){
+
+    private void checkOnlineStatus(String status) {
         DatabaseReference ref = FirebaseDatabase.getInstance().getReference("Users").child(myUid);
-        HashMap<String,Object> hashMap = new HashMap<>();
-        hashMap.put("onlineStatus",status);
+        HashMap<String, Object> hashMap = new HashMap<>();
+        hashMap.put("onlineStatus", status);
 
         ref.updateChildren(hashMap);
     }
 
-    private void checkTypingStatus(String typing){
+    private void checkTypingStatus(String typing) {
         DatabaseReference ref = FirebaseDatabase.getInstance().getReference("Users").child(myUid);
-        HashMap<String,Object> hashMap = new HashMap<>();
-        hashMap.put("typingTo",typing);
+        HashMap<String, Object> hashMap = new HashMap<>();
+        hashMap.put("typingTo", typing);
 
         ref.updateChildren(hashMap);
     }
@@ -698,7 +751,7 @@ public class ChatActivity extends AppCompatActivity {
     @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
 
-        if (item.getItemId() == R.id.action_logout){
+        if (item.getItemId() == R.id.action_logout) {
             firebaseAuth.signOut();
             checkUserStatus();
         }
@@ -741,24 +794,24 @@ public class ChatActivity extends AppCompatActivity {
     private void pickFromCamera() {
         //Intent for picking image from device camera
         ContentValues values = new ContentValues();
-        values.put(MediaStore.Images.Media.TITLE,"Temp Pic");
-        values.put(MediaStore.Images.Media.DESCRIPTION,"Temp Description");
+        values.put(MediaStore.Images.Media.TITLE, "Temp Pic");
+        values.put(MediaStore.Images.Media.DESCRIPTION, "Temp Description");
 
         //put image uri
-        image_uri = getContentResolver().insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI,values);
+        image_uri = getContentResolver().insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values);
 
 
 //        intent to start camera
         Intent cameraIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-        cameraIntent.putExtra(MediaStore.EXTRA_OUTPUT,image_uri);
-        startActivityForResult(cameraIntent,IMAGE_PICK_CAMERA_CODE);
+        cameraIntent.putExtra(MediaStore.EXTRA_OUTPUT, image_uri);
+        startActivityForResult(cameraIntent, IMAGE_PICK_CAMERA_CODE);
     }
 
     private void pickFromGallery() {
         //pick image from gallery
         Intent galleryIntent = new Intent(Intent.ACTION_PICK);
         galleryIntent.setType("image/*");
-        startActivityForResult(galleryIntent,IMAGE_PICK_GALLERY_CODE);
+        startActivityForResult(galleryIntent, IMAGE_PICK_GALLERY_CODE);
     }
 
     private boolean checkStoragePermission() {
@@ -768,7 +821,7 @@ public class ChatActivity extends AppCompatActivity {
     }
 
     private void requestStoragePermission() {
-        requestPermissions( storagePermissions, STORAGE_REQUEST_CODE);
+        requestPermissions(storagePermissions, STORAGE_REQUEST_CODE);
     }
 
     private boolean checkCameraPermission() {
@@ -818,8 +871,8 @@ public class ChatActivity extends AppCompatActivity {
 
     @Override
     public void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
-        if (resultCode == RESULT_OK){
-            if (requestCode == IMAGE_PICK_GALLERY_CODE){
+        if (resultCode == RESULT_OK) {
+            if (requestCode == IMAGE_PICK_GALLERY_CODE) {
                 //image picked from gallery
                 image_uri = data.getData();
 
@@ -830,8 +883,7 @@ public class ChatActivity extends AppCompatActivity {
                     e.printStackTrace();
                 }
 
-            }
-            else if (requestCode == IMAGE_PICK_CAMERA_CODE){
+            } else if (requestCode == IMAGE_PICK_CAMERA_CODE) {
                 //image picked from camera
                 try {
                     sendImageMessage(image_uri);
@@ -842,5 +894,47 @@ public class ChatActivity extends AppCompatActivity {
         }
 
         super.onActivityResult(requestCode, resultCode, data);
+    }
+
+    @Override
+    public void initiateVideoMeeting(User user) {
+        if (user.token == null || user.token.trim().isEmpty()) {
+            Toast.makeText(this, user.firstName + "" + user.lastName + " is not available for meeting", Toast.LENGTH_SHORT).show();
+        } else {
+            Intent intent = new Intent(getApplicationContext(), OutgoingInvitationActivity.class);
+            intent.putExtra("user", user);
+            intent.putExtra("myUser", myUser);
+            intent.putExtra("type", "video");
+            startActivity(intent);
+        }
+    }
+
+    @Override
+    public void initiateAudioMeeting(User user) {
+        if (user.token == null || user.token.trim().isEmpty()) {
+            Toast.makeText(this, user.firstName + "" + user.lastName + " is not available for meeting", Toast.LENGTH_SHORT).show();
+        } else {
+            Intent intent = new Intent(getApplicationContext(), OutgoingInvitationActivity.class);
+            intent.putExtra("user", user);
+            intent.putExtra("myUser", myUser);
+            intent.putExtra("type", "audio");
+            startActivity(intent);
+        }
+    }
+
+    @Override
+    public void onMultipleUserAction(boolean isMultipleUsersSelected) {
+//        if (isMultipleUsersSelected) {
+//            imageConference.setVisibility(View.VISIBLE);
+//            imageConference.setOnClickListener(v -> {
+//                Intent intent = new Intent(getApplicationContext(),OutgoingInvitationActivity.class);
+//                intent.putExtra("selectedUsers",new Gson().toJson(usersAdapter.getSelectedUser()));
+//                intent.putExtra("type","video");
+//                intent.putExtra("isMultiple",true);
+//                startActivity(intent);
+//            });
+//        }else {
+//            imageConference.setVisibility(View.GONE);
+//        }
     }
 }

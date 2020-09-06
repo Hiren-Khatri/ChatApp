@@ -23,7 +23,7 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Locale;
 
-import app.khatrisoftwares.chatapp.GroupChatActivity;
+import app.khatrisoftwares.chatapp.activities.GroupChatActivity;
 import app.khatrisoftwares.chatapp.R;
 import app.khatrisoftwares.chatapp.models.ModelGroupChatList;
 

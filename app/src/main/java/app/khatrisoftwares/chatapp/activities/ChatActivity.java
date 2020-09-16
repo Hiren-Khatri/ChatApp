@@ -146,6 +146,8 @@ public class ChatActivity extends AppCompatActivity implements UsersListener {
         attachBtn = findViewById(R.id.attachBtn);
         backBtn = findViewById(R.id.backBtn);
 
+        userStatusTv.setSelected(true);
+
         imageAudioMeeting = findViewById(R.id.imageAudioMeeting);
         imageVideoMeeting = findViewById(R.id.imageVideoMeeting);
 

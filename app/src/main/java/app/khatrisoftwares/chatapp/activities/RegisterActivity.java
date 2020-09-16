@@ -42,10 +42,6 @@ public class RegisterActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_register);
 
-        getSupportActionBar().setTitle("Create Account");
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-        getSupportActionBar().setDisplayShowHomeEnabled(true);
-
         //init views
         nameEt = findViewById(R.id.nameEt);
         emailEt = findViewById(R.id.emailEt);
@@ -138,11 +134,5 @@ public class RegisterActivity extends AppCompatActivity {
                        snackbar.show();
                     }
                 });
-    }
-
-    @Override
-    public boolean onSupportNavigateUp() {
-        onBackPressed();
-        return super.onSupportNavigateUp();
     }
 }

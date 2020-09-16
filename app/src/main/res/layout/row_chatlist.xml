@@ -13,7 +13,8 @@
             android:id="@+id/profileIv"
             android:layout_width="70dp"
             android:layout_height="70dp"
-            android:src="@drawable/ic_face_primary" />
+            android:src="@drawable/ic_face_primary"
+            android:transitionName="imageTran" />
         <!--        Image view online/offline-->
         <ImageView
             android:id="@+id/onlineStatusIv"
@@ -29,7 +30,8 @@
             android:fontFamily="@font/ubuntu_medium"
             android:text="His Name"
             android:textColor="@color/colorBlack"
-            android:textSize="18sp" />
+            android:textSize="18sp"
+            android:transitionName="nameTran" />
 
         <TextView
             android:id="@+id/lastMessageTv"

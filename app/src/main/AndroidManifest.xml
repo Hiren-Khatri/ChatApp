@@ -10,12 +10,13 @@
     <application
         android:name=".activities.MyApplication"
         android:allowBackup="true"
+        android:fullBackupContent="true"
         android:icon="@drawable/logo"
         android:label="@string/app_name"
         android:roundIcon="@drawable/logo_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".activities.GroupEditActivity"></activity>
+        <activity android:name=".activities.GroupEditActivity"/>
         <activity android:name=".activities.GroupInfoActivity" />
         <activity android:name=".activities.GroupParticipantAddActivity" />
         <activity
@@ -53,16 +54,20 @@
         <activity
             android:name=".activities.ChatActivity"
             android:theme="@style/AppThemeNo" />
-        <activity android:name=".activities.LoginActivity" />
-        <activity android:name=".activities.DashboardActivity">
+        <activity android:name=".activities.LoginActivity"
+            android:theme="@style/AppThemeMaterial"/>
+        <activity android:name=".activities.DashboardActivity"/>
+        <activity android:name=".activities.RegisterActivity"
+            android:theme="@style/AppThemeMaterial"/>
+        <activity android:name=".activities.MainActivity"
+            android:theme="@style/AppThemeMaterial">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".activities.RegisterActivity" />
-        <activity android:name=".activities.MainActivity" />
+
         <activity android:name=".activities.OutgoingInvitationActivity"
             android:theme="@style/AppThemeNo"
             android:screenOrientation="portrait"/>

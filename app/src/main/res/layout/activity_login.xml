@@ -5,32 +5,56 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:padding="20dp"
+    android:background="@color/colorWhite"
     tools:context=".activities.LoginActivity">
 
+    <ImageView
+        android:id="@+id/logo"
+        android:layout_width="100dp"
+        android:layout_height="100dp"
+        android:src="@drawable/logo"
+        android:transitionName="logo_image"
+        android:contentDescription="@string/app_name" />
+
     <TextView
+        android:id="@+id/greetTv"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="30dp"
-        android:text="Login"
-        android:textAlignment="center"
+        android:text="Hello There,\nWelcome Back"
+        android:textAllCaps="true"
         android:textColor="@color/colorPrimary"
-        android:textSize="25sp"
+        android:transitionName="logo_text"
+        android:textSize="@dimen/_25ssp"
+        android:layout_below="@id/logo"
         android:fontFamily="@font/ubuntu_bold"
         android:textStyle="bold" />
 
+
+    <TextView
+        android:id="@+id/greetTv1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/greetTv"
+        android:layout_marginTop="0dp"
+        android:fontFamily="@font/ubuntu_medium"
+        android:text="Sign In to continue"
+        android:transitionName="logo_desc"
+        android:textSize="@dimen/_16ssp" />
 
     <com.google.android.material.textfield.TextInputLayout
         android:id="@+id/emailTIL"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_centerHorizontal="true"
-        android:layout_centerVertical="true">
+        android:layout_below="@id/greetTv1"
+        android:hint="Email"
+        android:transitionName="email_tran"
+        android:layout_marginTop="@dimen/_16sdp"
+        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
 
-        <EditText
+        <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/emailEt"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Email"
             android:fontFamily="@font/ubuntu_medium"
             android:inputType="textEmailAddress" />
     </com.google.android.material.textfield.TextInputLayout>
@@ -40,46 +64,49 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_below="@id/emailTIL"
-        android:layout_centerHorizontal="true"
-        android:layout_centerVertical="true"
-        app:passwordToggleEnabled="true">
+        android:transitionName="password_tran"
+        android:hint="Password"
+        app:passwordToggleEnabled="true"
+        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
 
-        <EditText
+    <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/passwordEt"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Password"
             android:fontFamily="@font/ubuntu_medium"
-            android:inputType="textPassword" />
+        android:inputType="textPassword" />
     </com.google.android.material.textfield.TextInputLayout>
 
     <Button
         android:id="@+id/loginBtn"
         style="@style/Base.Widget.AppCompat.Button.Colored"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@id/passwordTIL"
+        android:elevation="0dp"
+        android:layout_marginTop="@dimen/_20sdp"
+        android:layout_below="@id/recoverPassTv"
         android:layout_centerHorizontal="true"
-        android:drawableStart="@drawable/ic_login_white"
-        android:drawablePadding="5dp"
         android:fontFamily="@font/ubuntu_bold"
-        android:text="Login" />
+        android:transitionName="button_tran"
+        android:text="Go" />
 
     <TextView
         android:id="@+id/recoverPassTv"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@id/loginBtn"
+        android:layout_below="@id/passwordTIL"
+        android:layout_marginTop="@dimen/_5sdp"
         android:text="Forgot Password? Recover"
         android:fontFamily="@font/ubuntu_medium"
-        android:textAlignment="center"
+        android:textAlignment="textEnd"
         android:textColor="@color/colorPrimary" />
 
     <com.google.android.gms.common.SignInButton
         android:id="@+id/googleLoginBtn"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_below="@id/recoverPassTv"
+        android:elevation="0dp"
+        android:layout_below="@id/loginBtn"
         android:layout_centerHorizontal="true"
         android:layout_marginTop="5dp"/>
 
@@ -90,8 +117,9 @@
         android:layout_alignParentBottom="true"
         android:layout_marginBottom="20dp"
         android:layout_marginTop="30dp"
-        android:text="Not having account? Register"
+        android:text="New User? Register"
         android:fontFamily="@font/ubuntu_medium"
+        android:transitionName="login_signup_tran"
         android:textAlignment="center"
         android:textColor="@color/colorPrimary" />
 

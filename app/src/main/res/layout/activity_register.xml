@@ -4,91 +4,113 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@color/colorWhite"
     android:padding="20dp"
     tools:context=".activities.RegisterActivity">
 
+    <ImageView
+        android:id="@+id/logo"
+        android:layout_width="100dp"
+        android:layout_height="100dp"
+        android:contentDescription="@string/app_name"
+        android:src="@drawable/logo"
+        android:transitionName="logo_image" />
+
     <TextView
+        android:id="@+id/greetTv"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="30dp"
+        android:layout_below="@id/logo"
         android:fontFamily="@font/ubuntu_bold"
-        android:text="Register"
-        android:textAlignment="center"
+        android:text="Welcome"
+        android:textAllCaps="true"
         android:textColor="@color/colorPrimary"
-        android:textSize="25sp" />
+        android:textSize="@dimen/_25ssp"
+        android:textStyle="bold"
+        android:transitionName="logo_text" />
+
+    <TextView
+        android:id="@+id/greetTv1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/greetTv"
+        android:fontFamily="@font/ubuntu_medium"
+        android:text="SignUp to start your new Journey"
+        android:textSize="@dimen/_14ssp" />
 
     <com.google.android.material.textfield.TextInputLayout
         android:id="@+id/nameTIL"
+        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_centerHorizontal="true"
-        android:layout_centerVertical="true">
+        android:layout_below="@id/greetTv1"
+        android:layout_marginTop="@dimen/_30sdp"
+        android:hint="Name">
 
-        <EditText
+        <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/nameEt"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:fontFamily="@font/ubuntu_regular"
-            android:hint="Name"
-            android:inputType="textEmailAddress" />
+            android:inputType="text" />
     </com.google.android.material.textfield.TextInputLayout>
 
     <com.google.android.material.textfield.TextInputLayout
         android:id="@+id/emailTIL"
+        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_centerHorizontal="true"
-        android:layout_centerVertical="true"
-        android:layout_below="@id/nameTIL">
+        android:layout_below="@id/nameTIL"
+        android:transitionName="email_tran"
+        android:hint="Email">
 
-        <EditText
+        <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/emailEt"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:fontFamily="@font/ubuntu_regular"
-            android:hint="Email"
             android:inputType="textEmailAddress" />
     </com.google.android.material.textfield.TextInputLayout>
 
     <com.google.android.material.textfield.TextInputLayout
         android:id="@+id/passwordTIL"
+        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_below="@id/emailTIL"
-        android:layout_centerHorizontal="true"
-        android:layout_centerVertical="true"
+        android:transitionName="password_tran"
+        android:hint="Password"
         app:passwordToggleEnabled="true">
 
-        <EditText
+        <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/passwordEt"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:fontFamily="@font/ubuntu_regular"
-            android:hint="Password"
             android:inputType="textPassword" />
     </com.google.android.material.textfield.TextInputLayout>
 
     <Button
         android:id="@+id/registerBtn"
         style="@style/Base.Widget.AppCompat.Button.Colored"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_below="@id/passwordTIL"
-        android:layout_centerHorizontal="true"
-        android:drawableStart="@drawable/ic_register_white"
-        android:drawablePadding="5dp"
         android:fontFamily="@font/ubuntu_regular"
-        android:text="Register" />
+        android:layout_marginTop="@dimen/_10sdp"
+        android:transitionName="button_tran"
+        android:text="Go" />
 
     <TextView
         android:id="@+id/have_accountTv"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_below="@id/registerBtn"
-        android:layout_marginTop="30dp"
+        android:layout_marginTop="@dimen/_10sdp"
         android:fontFamily="@font/ubuntu_medium"
-        android:text="Already have account? Login"
+        android:text="Already have an account? LogIn"
         android:textAlignment="center"
-        android:textColor="@color/colorBlack" />
+        android:textColor="@color/colorBlack"
+        android:transitionName="login_signup_tran" />
 
 </RelativeLayout>

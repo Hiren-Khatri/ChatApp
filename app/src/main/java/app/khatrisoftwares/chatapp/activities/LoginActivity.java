@@ -3,6 +3,7 @@ package app.khatrisoftwares.chatapp.activities;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.app.ActivityOptions;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.Context;
@@ -10,12 +11,15 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.text.InputType;
+import android.text.TextUtils;
 import android.util.Log;
+import android.util.Pair;
 import android.util.Patterns;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
@@ -30,6 +34,8 @@ import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.android.material.snackbar.Snackbar;
+import com.google.android.material.textfield.TextInputEditText;
+import com.google.android.material.textfield.TextInputLayout;
 import com.google.firebase.auth.AuthCredential;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
@@ -46,11 +52,12 @@ public class LoginActivity extends AppCompatActivity {
     private static final int RC_SIGN_IN = 100;
     GoogleSignInClient mGoogleSignInClient;
     //views
-    private EditText emailEt, passwordEt;
     private Button loginBtn;
-    private TextView notHaveAccountTv, recoverPassTv;
+    private ImageView logo;
+    private TextView notHaveAccountTv, recoverPassTv,greetTv,greetTv1;
     private SignInButton googleLoginBtn;
-
+    private TextInputEditText emailEt,passwordEt;
+    private TextInputLayout emailTIL,passwordTIL;
     private FirebaseAuth firebaseAuth;
     private ProgressDialog progressDialog;
 
@@ -59,10 +66,6 @@ public class LoginActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
 
-        getSupportActionBar().setTitle("Login");
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-        getSupportActionBar().setDisplayShowHomeEnabled(true);
-
         //init views
         emailEt = findViewById(R.id.emailEt);
         passwordEt = findViewById(R.id.passwordEt);
@@ -70,6 +73,11 @@ public class LoginActivity extends AppCompatActivity {
         notHaveAccountTv = findViewById(R.id.not_have_accountTv);
         recoverPassTv = findViewById(R.id.recoverPassTv);
         googleLoginBtn = findViewById(R.id.googleLoginBtn);
+        greetTv = findViewById(R.id.greetTv);
+        greetTv1 = findViewById(R.id.greetTv1);
+        logo = findViewById(R.id.logo);
+        emailTIL = findViewById(R.id.emailTIL);
+        passwordTIL = findViewById(R.id.passwordTIL);
 
         GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
                 .requestIdToken(getString(R.string.default_web_client_id))
@@ -82,13 +90,20 @@ public class LoginActivity extends AppCompatActivity {
         loginBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+
+                emailTIL.setError(null);
+                passwordTIL.setError(null);
                 String email = emailEt.getText().toString().trim();
                 String password = passwordEt.getText().toString().trim();
 
                 if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
-                    emailEt.setError("Invalid Email");
+                    emailTIL.setError("Invalid Email");
                     emailEt.requestFocus();
-                } else {
+                }else if(TextUtils.isEmpty(password)){
+                    passwordEt.requestFocus();
+                    passwordTIL.setError("Required!");
+                }
+                else {
                     // Check if no view has focus:
                     View view = LoginActivity.this.getCurrentFocus();
                     if (view != null) {
@@ -99,12 +114,20 @@ public class LoginActivity extends AppCompatActivity {
                 }
             }
         });
-        notHaveAccountTv.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                startActivity(new Intent(LoginActivity.this, RegisterActivity.class));
-                finish();
-            }
+        notHaveAccountTv.setOnClickListener(v -> {
+            Intent intent = new Intent(LoginActivity.this, RegisterActivity.class);
+
+            Pair[] pairs = new Pair[7];
+            pairs[0] = new Pair<View,String>(logo,"logo_image");
+            pairs[1] = new Pair<View,String>(greetTv,"logo_text");
+            pairs[2] = new Pair<View,String>(greetTv1,"logo_desc");
+            pairs[3] = new Pair<View,String>(emailTIL,"email_tran");
+            pairs[4] = new Pair<View,String>(passwordTIL,"password_tran");
+            pairs[5] = new Pair<View,String>(loginBtn,"button_tran");
+            pairs[6] = new Pair<View,String>(notHaveAccountTv,"login_signup_tran");
+
+            ActivityOptions options = ActivityOptions.makeSceneTransitionAnimation(LoginActivity.this,pairs);
+            startActivity(intent,options.toBundle());
         });
 
         recoverPassTv.setOnClickListener(new View.OnClickListener() {
@@ -203,12 +226,6 @@ public class LoginActivity extends AppCompatActivity {
                     }
                 });
 
-    }
-
-    @Override
-    public boolean onSupportNavigateUp() {
-        onBackPressed();
-        return super.onSupportNavigateUp();
     }
 
     @Override

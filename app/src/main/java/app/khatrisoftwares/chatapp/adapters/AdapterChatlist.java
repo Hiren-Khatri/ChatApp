@@ -1,7 +1,10 @@
 package app.khatrisoftwares.chatapp.adapters;
 
+import android.app.Activity;
+import android.app.ActivityOptions;
 import android.content.Context;
 import android.content.Intent;
+import android.util.Pair;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -18,6 +21,7 @@ import java.util.List;
 
 import app.khatrisoftwares.chatapp.activities.ChatActivity;
 import app.khatrisoftwares.chatapp.R;
+import app.khatrisoftwares.chatapp.activities.MainActivity;
 import app.khatrisoftwares.chatapp.models.ModelUser;
 
 public class AdapterChatlist extends RecyclerView.Adapter<AdapterChatlist.HolderChatlist> {
@@ -75,7 +79,11 @@ public class AdapterChatlist extends RecyclerView.Adapter<AdapterChatlist.Holder
                 //start chat activity with the user
                 Intent intent = new Intent(context, ChatActivity.class);
                 intent.putExtra("hisUid",hisUid);
-                context.startActivity(intent);
+                Pair[] pairs = new Pair[2];
+                pairs[0] = new Pair<View,String>(holder.profileIv,"imageTran");
+                pairs[1] = new Pair<View,String>(holder.nameTv,"nameTran");
+                ActivityOptions options = ActivityOptions.makeSceneTransitionAnimation((Activity) context,pairs);
+                context.startActivity(intent,options.toBundle());
             }
         });
     }
